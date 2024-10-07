@@ -62,6 +62,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     );
     event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
     event Supply(uint prevSupply, uint supply);
+    event VotingApproval(address indexed owner, address indexed operator, uint256 indexed tokenId);
+    event VotingApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
@@ -183,6 +185,77 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     }
 
     /*//////////////////////////////////////////////////////////////
+                         VOTING APPROVAL STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev Mapping from NFT ID to voting approved address.
+    mapping(uint => address) internal idToVotingApprovals;
+
+    /// @dev Mapping from owner address to mapping of voting operator addresses.
+    mapping(address => mapping(address => bool)) internal ownerToVotingOperators;
+
+    /// @dev Get the voting approved address for a single NFT.
+    /// @param _tokenId ID of the NFT to query the voting approval of.
+    function getVotingApproved(uint _tokenId) external view returns (address) {
+        return idToVotingApprovals[_tokenId];
+    }
+
+    /// @dev Checks if `_operator` is a voting approved operator for `_owner`.
+    /// @param _owner The address that owns the NFTs.
+    /// @param _operator The address that acts on behalf of the owner for voting.
+    function isVotingApprovedForAll(address _owner, address _operator) external view returns (bool) {
+        return (ownerToVotingOperators[_owner])[_operator];
+    }
+
+
+    /*//////////////////////////////////////////////////////////////
+                        VOTING APPROVAL LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev Set or reaffirm the voting approved address for an NFT. The zero address indicates there is no voting approved address.
+    ///      Throws unless `msg.sender` is the current NFT owner, or an authorized voting operator of the current owner.
+    ///      Throws if `_tokenId` is not a valid NFT. (NOTE: This is not written the EIP)
+    ///      Throws if `_approved` is the current owner. (NOTE: This is not written the EIP)
+    /// @param _approved Address to be approved for the given NFT ID.
+    /// @param _tokenId ID of the token to be approved.
+    function approveVoting(address _approved, uint _tokenId) public {
+        address owner = idToOwner[_tokenId];
+        // Throws if `_tokenId` is not a valid NFT
+        require(owner != address(0));
+        // Throws if `_approved` is the current owner
+        require(_approved != owner);
+        // Check requirements
+        bool senderIsOwner = (idToOwner[_tokenId] == msg.sender);
+        bool senderIsApprovedForAll = (ownerToOperators[owner])[msg.sender];
+        require(senderIsOwner || senderIsApprovedForAll);
+        // Set the approval
+        idToVotingApprovals[_tokenId] = _approved;
+        emit VotingApproval(owner, _approved, _tokenId);
+    }
+
+    /// @dev Enables or disables voting approval for a third party ("operator") to manage all of
+    ///      `msg.sender`'s assets votes. It also emits the VotingApprovalForAll event.
+    ///      Throws if `_operator` is the `msg.sender`. (NOTE: This is not written the EIP)
+    /// @notice This works even if sender doesn't own any tokens at the time.
+    /// @param _operator Address to add to the set of authorized voting operators.
+    /// @param _approved True if the voting operators is approved, false to revoke approval.
+    function setVotingApprovalForAll(address _operator, bool _approved) external {
+        // Throws if `_operator` is the `msg.sender`
+        assert(_operator != msg.sender);
+        ownerToVotingOperators[msg.sender][_operator] = _approved;
+        emit VotingApprovalForAll(msg.sender, _operator, _approved);
+    }
+
+    /* TRANSFER FUNCTIONS */
+    /// @dev Clear an approval of a given address. Caller should check beforehand if the sender is the owner. 
+    function _clearVotingApproval(uint _tokenId) internal {
+        if (idToVotingApprovals[_tokenId] != address(0)) {
+            // Reset approvals
+            idToVotingApprovals[_tokenId] = address(0);
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
                          ERC721 APPROVAL STORAGE
     //////////////////////////////////////////////////////////////*/
 
@@ -290,6 +363,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         require(_isApprovedOrOwner(_sender, _tokenId));
         // Clear approval. Throws if `_from` is not the current owner
         _clearApproval(_from, _tokenId);
+        // Clear voting approval.
+        _clearVotingApproval(_tokenId);
         // Remove NFT. Throws if `_tokenId` is not a valid NFT
         _removeTokenFrom(_from, _tokenId);
         // auto re-delegate
@@ -502,6 +577,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
         // Clear approval
         approve(address(0), _tokenId);
+        // Clear voting approval
+        approveVoting(address(0), _tokenId);
         // checkpoint for gov
         _moveTokenDelegates(delegates(owner), address(0), _tokenId);
         // Remove token
