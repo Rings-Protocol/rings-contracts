@@ -31,6 +31,9 @@ interface IVotingEscrow {
     function isApprovedOrOwner(address, uint) external view returns (bool);
     function transferFrom(address, address, uint) external;
 
+    function isVotingApprovedOrOwner(address, uint) external view returns (bool);
+    function delegateVotingControl(address, uint) external;
+
     function voted(uint) external view returns (bool);
     function attachments(uint) external view returns (uint);
     function voting(uint tokenId) external;

@@ -15,6 +15,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     uint256 public constant WEEK = 86400 * 7;
     uint256 private constant UNIT = 1e18;
     uint256 public constant MAX_TOKEN_ID_LENGTH = 10;
+    uint256 public constant MAX_WEIGHT = 10000; // 100% in BPS
 
     address public immutable ve;
     IERC20 public immutable baseAsset;
@@ -23,7 +24,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
     uint256 public voteDelay = 1 hours; // To prevent spamming votes
 
-    struct Vote {
+    struct Vote { // TODO : better struct packing for gas savings
         uint256 weight;
         uint256 votes;
     }
@@ -42,16 +43,18 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     mapping(address => string) internal gaugeLabel;
     // gauge => next period the gauge can claim rewards
     mapping(address => uint256) public gaugesDistributionTimestmap;
-    // nft => timstamp => gauge => votes
+    // nft => timestamp => gauge => votes
     mapping(uint256 => mapping(uint256 => mapping(address => Vote))) public votes;
-    // nft => timstamp => gauges
+    // nft => timestamp => gauges
     mapping(uint256 => mapping(uint256 => address[])) public gaugeVote;
     // timestamp => gauge => votes
     mapping(uint256 => mapping(address => uint256)) internal votesPerPeriod;
     // timestamp => total votes
     mapping(uint256 => uint256) internal totalVotesPerPeriod;
-    // nft => timestamp of last vote
+    // nft => timestamp
     mapping(uint256 => uint256) public lastVoted;
+    // nft => timestamp => bool
+    mapping(uint256 => mapping(uint256 => bool)) public voteCastedPeriod;
     // gauge => boolean [is a gauge?]
     mapping(address => bool) public isGauge;
     // gauge => boolean [is the gauge alive?]
@@ -73,10 +76,12 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     error MaxArraySizeExceeded();
     error GaugeNotListed();
     error GaugeAlreadyListed();
+    error KilledGauge();
     error GaugeAlreadyKilled();
     error GaugeNotKilled();
     error VoteDelayNotExpired();
     error CannotVoteWithNft();
+    error VoteWeightOverflow();
 
     constructor(
         address _owner,
@@ -103,8 +108,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
         for(uint256 i = 0; i < length; i++) {
             address gauge = _gauges[i];
-            Vote memory vote = votes[tokenId][nextPeriod][gauge];
-            _votes[i] = CastedVote(gauge, vote.weight, vote.votes);
+            Vote memory voteData = votes[tokenId][nextPeriod][gauge];
+            _votes[i] = CastedVote(gauge, voteData.weight, voteData.votes);
         }
 
         return _votes;
@@ -118,8 +123,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
         for(uint256 i = 0; i < length; i++) {
             address gauge = _gauges[i];
-            Vote memory vote = votes[tokenId][ts][gauge];
-            _votes[i] = CastedVote(gauge, vote.weight, vote.votes);
+            Vote memory voteData = votes[tokenId][ts][gauge];
+            _votes[i] = CastedVote(gauge, voteData.weight, voteData.votes);
         }
 
         return _votes;
@@ -170,46 +175,103 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         if(block.timestamp >= lastVoted[tokenId] + voteDelay) revert VoteDelayNotExpired();
     }
 
-    // _reset
+    function _reset(address voter, uint256 tokenId) internal {
+        uint256 nextPeriod = currentPeriod() + WEEK;
+        if(voteCastedPeriod[tokenId][nextPeriod]) { // otherwise, no vote casted for that period yet, nothing to reset
+            address[] memory _gauges = gaugeVote[tokenId][nextPeriod];
+            uint256 length = _gauges.length;
+            uint256 totalVotesRemoved;
+            for(uint256 i; i < length;) {
+                address gauge = _gauges[i];
+                uint256 voteAmount = votes[tokenId][nextPeriod][gauge].votes;
+                votesPerPeriod[nextPeriod][gauge] -= voteAmount;
+                totalVotesRemoved += voteAmount;
+                delete votes[tokenId][nextPeriod][gauge];
 
-    function _vote(address voter, uint256 tokenId, address[] calldata gauges, uint256[] calldata weights) internal {
-        
+                emit VoteReseted(voter, tokenId, gauge);
+
+                unchecked { i++; }
+            }
+            delete gaugeVote[tokenId][nextPeriod];
+            totalVotesPerPeriod[nextPeriod] -= totalVotesRemoved;
+        }
+        voteCastedPeriod[tokenId][nextPeriod] = false;
     }
 
-    function vote(uint256 tokenId, address[] calldata gauges, uint256[] calldata weights) public nonReentrant {
+    function _vote(address voter, uint256 tokenId, address[] memory gaugeList, uint256[] memory weights) internal {
+        uint256 nextPeriod = currentPeriod() + WEEK;
+        uint256 length = gaugeList.length;
+
+        uint256 _votes = IVotingEscrow(ve).balanceOfNFT(tokenId);
+        uint256 totalUsedWeights;
+        
+        for(uint256 i; i < length;) {
+            address gauge = gaugeList[i];
+            if(!isGauge[gauge]) revert GaugeNotListed();
+            if(!isAlive[gauge]) revert KilledGauge();
+
+            uint256 gaugeVotes = (_votes * weights[i]) / MAX_WEIGHT;
+            totalUsedWeights += weights[i];
+
+            gaugeVote[tokenId][nextPeriod].push(gauge);
+
+            votesPerPeriod[nextPeriod][gauge] += gaugeVotes;
+            votes[tokenId][nextPeriod][gauge] = Vote(weights[i], gaugeVotes);
+
+            emit Voted(voter, tokenId, gauge, weights[i], gaugeVotes);
+
+            unchecked { i++; }
+        }
+
+        if(totalUsedWeights > MAX_WEIGHT) revert VoteWeightOverflow();
+
+        totalVotesPerPeriod[nextPeriod] += _votes;
+
+        voteCastedPeriod[tokenId][nextPeriod] = true;
+    }
+
+    function vote(uint256 tokenId, address[] calldata gaugeList, uint256[] calldata weights) public nonReentrant {
         _voteDelay(tokenId);
         if(!IVotingEscrow(ve).isVotingApprovedOrOwner(msg.sender, tokenId)) revert CannotVoteWithNft();
-        if(gauges.length != weights.length) revert ArrayLengthMismatch();
-        _vote(msg.sender, tokenId, gauges, weights);
+        if(gaugeList.length != weights.length) revert ArrayLengthMismatch();
+        _reset(msg.sender, tokenId);
+        _vote(msg.sender, tokenId, gaugeList, weights);
         
-        // to do
+        lastVoted[tokenId] = block.timestamp;
     }
 
     function reset(uint256 tokenId) public nonReentrant {
         _voteDelay(tokenId);
         if(!IVotingEscrow(ve).isVotingApprovedOrOwner(msg.sender, tokenId)) revert CannotVoteWithNft();
-        _reset(tokenId);
-        IVotingEscrow(_ve).abstain(tokenId);
+        _reset(msg.sender, tokenId);
+        IVotingEscrow(ve).abstain(tokenId);
+        
+        lastVoted[tokenId] = block.timestamp;
     }
 
     function recast(uint256 tokenId) public nonReentrant {
         _voteDelay(tokenId);
         if(!IVotingEscrow(ve).isVotingApprovedOrOwner(msg.sender, tokenId)) revert CannotVoteWithNft();
 
-        // to do : 
-        // get all votes from prev period
-        // reset votes for the period
-        // cast the votes
+        address[] memory _gauges = gaugeVote[tokenId][currentPeriod()];
+        uint256 length = _gauges.length;
+        uint256[] memory weights = new uint256[](length);
+        for(uint256 i; i < length;) {
+            weights[i] = votes[tokenId][currentPeriod()][_gauges[i]].weight;
+            unchecked { i++; }
+        }
+        _reset(msg.sender, tokenId);
+        _vote(msg.sender, tokenId, _gauges, weights);
+        
+        lastVoted[tokenId] = block.timestamp;
     }
 
-    function voteMultiple(uint256[] calldata tokenIds, address[] calldata gauges, uint256[] calldata weights) external {
+    function voteMultiple(uint256[] calldata tokenIds, address[] calldata gaugeList, uint256[] calldata weights) external {
         uint256 length = tokenIds.length;
         if(length > MAX_TOKEN_ID_LENGTH) revert MaxArraySizeExceeded();
         for(uint256 i; i < length;) {
-            vote(tokenIds[i], gauges, weights);
-            unchecked {
-                i++;
-            }
+            vote(tokenIds[i], gaugeList, weights);
+            unchecked { i++; }
         }
     }
 
@@ -218,9 +280,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         if(length > MAX_TOKEN_ID_LENGTH) revert MaxArraySizeExceeded();
         for(uint256 i; i < length;) {
             recast(tokenIds[i]);
-            unchecked {
-                i++;
-            }
+            unchecked { i++; }
         }
     }
 
@@ -229,9 +289,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         if(length > MAX_TOKEN_ID_LENGTH) revert MaxArraySizeExceeded();
         for(uint256 i; i < length;) {
             reset(tokenIds[i]);
-            unchecked {
-                i++;
-            }
+            unchecked { i++; }
         }
     }
 
