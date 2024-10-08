@@ -44,7 +44,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     // gauge => label
     mapping(address => string) internal gaugeLabel;
     // gauge => next period the gauge can claim rewards
-    mapping(address => uint256) public gaugesDistributionTimestmap;
+    mapping(address => uint256) public gaugesDistributionTimestamp;
     // nft => timestamp => gauge => votes
     mapping(uint256 => mapping(uint256 => mapping(address => Vote))) public votes;
     // nft => timestamp => gauges
@@ -312,7 +312,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     function claimGaugeRewards(address gauge) external nonReentrant returns (uint256 claimedAmount) {
         uint256 _currentPeriod = currentPeriod();
         // Fetch the next period the gauge can claim rewards, from the last time it claimed.
-        uint256 period = gaugesDistributionTimestmap[gauge];
+        uint256 period = gaugesDistributionTimestamp[gauge];
         while(period <= _currentPeriod) {
             uint256 relativeWeight = _getGaugeRelativeWeight(gauge, period);
 
@@ -324,7 +324,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         }
 
         // Next time the gauge can claim will be after the current period vote is over.
-        gaugesDistributionTimestmap[gauge] = _currentPeriod + WEEK;
+        gaugesDistributionTimestamp[gauge] = _currentPeriod + WEEK;
 
         if(claimedAmount > 0) {
             baseAsset.safeTransfer(gauge, claimedAmount);
@@ -347,7 +347,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         gaugeLabel[gauge] = label;
 
         uint256 _currentPeriod = currentPeriod();
-        gaugesDistributionTimestmap[gauge] = _currentPeriod;
+        gaugesDistributionTimestamp[gauge] = _currentPeriod;
 
         emit GaugeAdded(gauge);
     }
