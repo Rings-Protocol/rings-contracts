@@ -20,6 +20,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     address public immutable ve;
     IERC20 public immutable baseAsset;
 
+    bool public isDepositFrozen;
+
     address[] public gauges;
 
     uint256 public voteDelay = 1 hours; // To prevent spamming votes
@@ -69,6 +71,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     event RewardClaimed(address indexed gauge, uint256 amount);
 
     event VoteDelayUpdated(uint256 oldVoteDelay, uint256 newVoteDelay);
+    event DepositFreezeTriggered(bool frozen);
 
     error InvalidParameter();
     error NullAmount();
@@ -82,6 +85,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     error VoteDelayNotExpired();
     error CannotVoteWithNft();
     error VoteWeightOverflow();
+    error DepositFrozen();
 
     constructor(
         address _owner,
@@ -295,6 +299,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
     function depositBudget(uint256 amount) external nonReentrant {
         if(amount == 0) revert NullAmount();
+        if(isDepositFrozen) revert DepositFrozen();
 
         baseAsset.safeTransferFrom(msg.sender, address(this), amount);
 
@@ -373,6 +378,12 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         voteDelay = newVoteDelay;
 
         emit VoteDelayUpdated(oldVoteDelay, newVoteDelay);
+    }
+
+    function triggerDepositFreeze() external onlyOwner {
+        isDepositFrozen = !isDepositFrozen;
+
+        emit DepositFreezeTriggered(isDepositFrozen);
     }
 
 }
