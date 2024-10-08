@@ -172,6 +172,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     }
 
     function getGaugeRelativeWeightAtPeriod(address gauge, uint256 ts) external view returns (uint256) {
+        ts = (ts / WEEK) * WEEK;
         return _getGaugeRelativeWeight(gauge, ts);
     }
 
