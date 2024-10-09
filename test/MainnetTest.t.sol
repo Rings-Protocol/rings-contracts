@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "./BaseTest.t.sol";
-import { IERC20 } from "openzeppelin-contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MainnetTest is BaseTest {
     // Put here the contracts that your project needs
