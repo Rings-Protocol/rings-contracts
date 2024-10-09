@@ -207,6 +207,22 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         return (ownerToVotingOperators[_owner])[_operator];
     }
 
+    /// @dev Returns whether the given voter can vote a given token ID
+    /// @param _voter address of the voter to query
+    /// @param _tokenId uint ID of the token to be transferred
+    /// @return bool whether the msg.sender is approved for the given token ID, is an operator of the owner, or is the owner of the token
+    function _isVotingApprovedOrOwner(address _voter, uint _tokenId) internal view returns (bool) {
+        address owner = idToOwner[_tokenId];
+        bool voterIsOwner = owner == _voter;
+        bool voterIsApproved = _voter == idToVotingApprovals[_tokenId];
+        bool voterIsApprovedForAll = (ownerToVotingOperators[owner])[_voter];
+        return voterIsOwner || voterIsApproved || voterIsApprovedForAll;
+    }
+
+    function isVotingApprovedOrOwner(address _voter, uint _tokenId) external view returns (bool) {
+        return _isVotingApprovedOrOwner(_voter, _tokenId);
+    }
+
 
     /*//////////////////////////////////////////////////////////////
                         VOTING APPROVAL LOGIC
