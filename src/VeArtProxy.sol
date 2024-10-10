@@ -6,7 +6,7 @@ import {IVeArtProxy} from "./interfaces/IVeArtProxy.sol";
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract VeArtProxyUpgradeable is IVeArtProxy, OwnableUpgradeable {
+contract VeArtProxy is IVeArtProxy, OwnableUpgradeable {
 
 
     constructor() {}
