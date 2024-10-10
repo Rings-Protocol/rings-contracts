@@ -20,7 +20,7 @@ contract DeployScript is Script {
     }
 
     function _deployContracts() internal {
-        _deployCounter();
+        //_deployCounter();
     }
 
     function run() external {
