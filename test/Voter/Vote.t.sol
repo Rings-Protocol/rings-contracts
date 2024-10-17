@@ -2,7 +2,6 @@
 pragma solidity 0.8.24;
 
 import "./VoterTest.t.sol";
-import { Voter } from "src/Voter.sol";
 
 contract Vote is VoterTest {
 
@@ -21,6 +20,7 @@ contract Vote is VoterTest {
     error VoteDelayNotExpired();
 
     event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 weight, uint256 votes);
+    event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
 
     uint256 private constant WEEK = 86400 * 7;
     uint256 private constant MAX_WEIGHT = 10000; // 100% in BPS
@@ -357,6 +357,8 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
+        emit VoteReseted(address(alice), 1, gauge2);
+        emit VoteReseted(address(alice), 1, gauge4);
         emit Voted(address(alice), 1, gauge1, 5000, gaugeVotes1);
         emit Voted(address(alice), 1, gauge2, 2000, gaugeVotes2);
         emit Voted(address(alice), 1, gauge3, 3000, gaugeVotes3);
@@ -515,6 +517,151 @@ contract Vote is VoterTest {
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);
+    }
+
+    function test_fail_not_allowed_delegate() public {
+        address[] memory gauges = new address[](3);
+        uint256[] memory weights = new uint256[](3);
+        gauges[0] = gauge1;
+        gauges[1] = gauge2;
+        gauges[2] = gauge3;
+        weights[0] = 5000;
+        weights[1] = 2000;
+        weights[2] = 3000;
+
+        vm.expectRevert(CannotVoteWithNft.selector);
+
+        vm.prank(bob);
+        voter.vote(1, gauges, weights);
+    }
+    
+    function test_voteMultiple_success() public {
+        address[] memory gauges = new address[](3);
+        uint256[] memory weights = new uint256[](3);
+        gauges[0] = gauge1;
+        gauges[1] = gauge2;
+        gauges[2] = gauge3;
+        weights[0] = 5000;
+        weights[1] = 2000;
+        weights[2] = 3000;
+
+        uint256[] memory tokenIds = new uint256[](3);
+        tokenIds[0] = 1;
+        tokenIds[1] = 2;
+        tokenIds[2] = 3;
+
+        ve.delegateVotingControl(address(alice), 2);
+
+        updateNftBalance(3, 150e18);
+
+        uint256 totalCastedVotes = 0;
+
+        uint256 votingPower1 = ve.balanceOfNFT(1);
+        uint256 votingPower2 = ve.balanceOfNFT(2);
+        uint256 votingPower3 = ve.balanceOfNFT(3);
+
+        uint256 gaugeVotes1;
+        uint256 gaugeVotes2;
+        uint256 gaugeVotes3;
+        gaugeVotes1 += (votingPower1 * weights[0]) / MAX_WEIGHT;
+        gaugeVotes2 += (votingPower1 * weights[1]) / MAX_WEIGHT;
+        gaugeVotes3 += (votingPower1 * weights[2]) / MAX_WEIGHT;
+        gaugeVotes1 += (votingPower2 * weights[0]) / MAX_WEIGHT;
+        gaugeVotes2 += (votingPower2 * weights[1]) / MAX_WEIGHT;
+        gaugeVotes3 += (votingPower2 * weights[2]) / MAX_WEIGHT;
+        gaugeVotes1 += (votingPower3 * weights[0]) / MAX_WEIGHT;
+        gaugeVotes2 += (votingPower3 * weights[1]) / MAX_WEIGHT;
+        gaugeVotes3 += (votingPower3 * weights[2]) / MAX_WEIGHT;
+
+        totalCastedVotes = gaugeVotes1 + gaugeVotes2 + gaugeVotes3;
+
+        uint256 nextPeriod = voter.currentPeriod() + WEEK;
+
+        uint256 prevGauge1Votes = voter.votesPerPeriod(nextPeriod, gauge1);
+        uint256 prevGauge2Votes = voter.votesPerPeriod(nextPeriod, gauge2);
+        uint256 prevGauge3Votes = voter.votesPerPeriod(nextPeriod, gauge3);
+
+        uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
+
+        vm.expectEmit(true, true, true, true);
+        emit Voted(address(alice), 1, gauge1, 5000, (votingPower1 * weights[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge2, 2000, (votingPower1 * weights[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge3, 3000, (votingPower1 * weights[2]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge1, 5000, (votingPower2 * weights[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge2, 2000, (votingPower2 * weights[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge3, 3000, (votingPower2 * weights[2]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge1, 5000, (votingPower3 * weights[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge2, 2000, (votingPower3 * weights[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge3, 3000, (votingPower3 * weights[2]) / MAX_WEIGHT);
+
+        vm.prank(alice);
+        voter.voteMultiple(tokenIds, gauges, weights);
+
+        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(2), block.timestamp);
+        assertEq(voter.lastVoted(3), block.timestamp);
+
+        assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
+        assertEq(voter.voteCastedPeriod(2, nextPeriod), true);
+        assertEq(voter.voteCastedPeriod(3, nextPeriod), true);
+
+        assertEq(voter.votesPerPeriod(nextPeriod, gauge1), prevGauge1Votes + gaugeVotes1);
+        assertEq(voter.votesPerPeriod(nextPeriod, gauge2), prevGauge2Votes + gaugeVotes2);
+        assertEq(voter.votesPerPeriod(nextPeriod, gauge3), prevGauge3Votes + gaugeVotes3);
+
+        assertEq(voter.totalVotesPerPeriod(nextPeriod), prevTotalVotes + gaugeVotes1 + gaugeVotes2 + gaugeVotes3);
+
+        Vote memory vote1;
+        Vote memory vote2;
+        Vote memory vote3;
+        (vote1.weight, vote1.votes) = voter.votes(1, nextPeriod, gauge1);
+        (vote2.weight, vote2.votes) = voter.votes(1, nextPeriod, gauge2);
+        (vote3.weight, vote3.votes) = voter.votes(1, nextPeriod, gauge3);
+        assertEq(vote1.votes, (votingPower1 * weights[0]) / MAX_WEIGHT);
+        assertEq(vote1.weight, weights[0]);
+        assertEq(vote2.votes, (votingPower1 * weights[1]) / MAX_WEIGHT);
+        assertEq(vote2.weight, weights[1]);
+        assertEq(vote3.votes, (votingPower1 * weights[2]) / MAX_WEIGHT);
+        assertEq(vote3.weight, weights[2]);
+
+        (vote1.weight, vote1.votes) = voter.votes(2, nextPeriod, gauge1);
+        (vote2.weight, vote2.votes) = voter.votes(2, nextPeriod, gauge2);
+        (vote3.weight, vote3.votes) = voter.votes(2, nextPeriod, gauge3);
+        assertEq(vote1.votes, (votingPower2 * weights[0]) / MAX_WEIGHT);
+        assertEq(vote1.weight, weights[0]);
+        assertEq(vote2.votes, (votingPower2 * weights[1]) / MAX_WEIGHT);
+        assertEq(vote2.weight, weights[1]);
+        assertEq(vote3.votes, (votingPower2 * weights[2]) / MAX_WEIGHT);
+        assertEq(vote3.weight, weights[2]);
+
+        (vote1.weight, vote1.votes) = voter.votes(3, nextPeriod, gauge1);
+        (vote2.weight, vote2.votes) = voter.votes(3, nextPeriod, gauge2);
+        (vote3.weight, vote3.votes) = voter.votes(3, nextPeriod, gauge3);
+        assertEq(vote1.votes, (votingPower3 * weights[0]) / MAX_WEIGHT);
+        assertEq(vote1.weight, weights[0]);
+        assertEq(vote2.votes, (votingPower3 * weights[1]) / MAX_WEIGHT);
+        assertEq(vote2.weight, weights[1]);
+        assertEq(vote3.votes, (votingPower3 * weights[2]) / MAX_WEIGHT);
+        assertEq(vote3.weight, weights[2]);
+
+        assertEq(voter.gaugeVote(1, nextPeriod, 0), gauge1);
+        assertEq(voter.gaugeVote(1, nextPeriod, 1), gauge2);
+        assertEq(voter.gaugeVote(1, nextPeriod, 2), gauge3);
+
+        assertEq(voter.gaugeVote(2, nextPeriod, 0), gauge1);
+        assertEq(voter.gaugeVote(2, nextPeriod, 1), gauge2);
+        assertEq(voter.gaugeVote(2, nextPeriod, 2), gauge3);
+
+        assertEq(voter.gaugeVote(3, nextPeriod, 0), gauge1);
+        assertEq(voter.gaugeVote(3, nextPeriod, 1), gauge2);
+        assertEq(voter.gaugeVote(3, nextPeriod, 2), gauge3);
+
+        assertEq(ve.voted(1), true);
+        assertEq(ve.voted(2), true);
+        assertEq(ve.voted(3), true);
+        assertEq(ve._abstained(1), false);
+        assertEq(ve._abstained(2), false);
+        assertEq(ve._abstained(3), false);
     }
 
 }

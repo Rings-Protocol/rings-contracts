@@ -87,6 +87,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     error CannotVoteWithNft();
     error NoVotingPower();
     error VoteWeightOverflow();
+    error NoVoteToRecast();
     error DepositFrozen();
 
     constructor(
@@ -267,6 +268,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
         address[] memory _gauges = gaugeVote[tokenId][currentPeriod()];
         uint256 length = _gauges.length;
+        if(length == 0) revert NoVoteToRecast();
         uint256[] memory weights = new uint256[](length);
         for(uint256 i; i < length;) {
             weights[i] = votes[tokenId][currentPeriod()][_gauges[i]].weight;
@@ -291,7 +293,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         uint256 length = tokenIds.length;
         if(length > MAX_TOKEN_ID_LENGTH) revert MaxArraySizeExceeded();
         for(uint256 i; i < length;) {
-            recast(tokenIds[i]);
+            reset(tokenIds[i]);
             unchecked { i++; }
         }
     }
@@ -300,7 +302,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         uint256 length = tokenIds.length;
         if(length > MAX_TOKEN_ID_LENGTH) revert MaxArraySizeExceeded();
         for(uint256 i; i < length;) {
-            reset(tokenIds[i]);
+            recast(tokenIds[i]);
             unchecked { i++; }
         }
     }
