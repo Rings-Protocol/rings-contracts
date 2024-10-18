@@ -69,7 +69,6 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
     event BudgetDeposited(address indexed depositor, uint256 indexed period, uint256 amount);
     event RewardClaimed(address indexed gauge, uint256 amount);
-
     event VoteDelayUpdated(uint256 oldVoteDelay, uint256 newVoteDelay);
     event DepositFreezeTriggered(bool frozen);
 
@@ -165,7 +164,9 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     }
 
     function _getGaugeRelativeWeight(address gauge, uint256 period) internal view returns (uint256) {
+        if(!isGauge[gauge] || !isAlive[gauge]) return 0;
         uint256 totalVotes = totalVotesPerPeriod[period];
+        if(totalVotes == 0) return 0;
         uint256 gaugeVotes = votesPerPeriod[period][gauge];
         return (gaugeVotes * UNIT) / totalVotes;
     }
@@ -369,9 +370,6 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         if(!isAlive[gauge]) revert GaugeAlreadyKilled();
         isAlive[gauge] = false;
 
-        uint256 _currentPeriod = currentPeriod();
-        totalVotesPerPeriod[_currentPeriod] -= votesPerPeriod[_currentPeriod][gauge]; 
-
         emit GaugeKilled(gauge);
     }
 
@@ -380,9 +378,6 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         if(!isGauge[gauge]) revert GaugeNotListed();
         if(isAlive[gauge]) revert GaugeNotKilled();
         isAlive[gauge] = true;
-
-        uint256 _currentPeriod = currentPeriod();
-        totalVotesPerPeriod[_currentPeriod] += votesPerPeriod[_currentPeriod][gauge]; 
         
         emit GaugeRevived(gauge);
     }
