@@ -65,7 +65,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     event GaugeAdded(address indexed gauge);
     event GaugeKilled(address indexed gauge);
     event GaugeRevived(address indexed gauge);
-    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 weight, uint256 votes);
+    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes);
     event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
     event BudgetDeposited(address indexed depositor, uint256 indexed period, uint256 amount);
     event RewardClaimed(address indexed gauge, uint256 amount);
@@ -231,7 +231,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
             votesPerPeriod[nextPeriod][gauge] += gaugeVotes;
             votes[tokenId][nextPeriod][gauge] = Vote(weights[i], gaugeVotes);
 
-            emit Voted(voter, tokenId, gauge, weights[i], gaugeVotes);
+            emit Voted(voter, tokenId, gauge, block.timestamp, weights[i], gaugeVotes);
 
             unchecked { i++; }
         }

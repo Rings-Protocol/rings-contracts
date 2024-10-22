@@ -19,7 +19,7 @@ contract Vote is VoterTest {
     error NoVotingPower();
     error VoteDelayNotExpired();
 
-    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 weight, uint256 votes);
+    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes);
     event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
 
     uint256 private constant WEEK = 86400 * 7;
@@ -90,9 +90,9 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 1, gauge1, 5000, gaugeVotes1);
-        emit Voted(address(alice), 1, gauge2, 2000, gaugeVotes2);
-        emit Voted(address(alice), 1, gauge3, 3000, gaugeVotes3);
+        emit Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
+        emit Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
+        emit Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);
@@ -220,8 +220,8 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 1, gauge1, weights[0], gaugeVotes1);
-        emit Voted(address(alice), 1, gauge2, weights[1], gaugeVotes2);
+        emit Voted(address(alice), 1, gauge1, block.timestamp, weights[0], gaugeVotes1);
+        emit Voted(address(alice), 1, gauge2, block.timestamp, weights[1], gaugeVotes2);
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);
@@ -278,9 +278,9 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(bob), 1, gauge1, 5000, gaugeVotes1);
-        emit Voted(address(bob), 1, gauge2, 2000, gaugeVotes2);
-        emit Voted(address(bob), 1, gauge3, 3000, gaugeVotes3);
+        emit Voted(address(bob), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
+        emit Voted(address(bob), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
+        emit Voted(address(bob), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
 
         vm.prank(bob);
         voter.vote(1, gauges, weights);
@@ -359,9 +359,9 @@ contract Vote is VoterTest {
         vm.expectEmit(true, true, true, true);
         emit VoteReseted(address(alice), 1, gauge2);
         emit VoteReseted(address(alice), 1, gauge4);
-        emit Voted(address(alice), 1, gauge1, 5000, gaugeVotes1);
-        emit Voted(address(alice), 1, gauge2, 2000, gaugeVotes2);
-        emit Voted(address(alice), 1, gauge3, 3000, gaugeVotes3);
+        emit Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
+        emit Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
+        emit Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);
@@ -584,15 +584,15 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 1, gauge1, 5000, (votingPower1 * weights[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 1, gauge2, 2000, (votingPower1 * weights[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 1, gauge3, 3000, (votingPower1 * weights[2]) / MAX_WEIGHT);
-        emit Voted(address(alice), 2, gauge1, 5000, (votingPower2 * weights[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 2, gauge2, 2000, (votingPower2 * weights[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 2, gauge3, 3000, (votingPower2 * weights[2]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge1, 5000, (votingPower3 * weights[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge2, 2000, (votingPower3 * weights[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge3, 3000, (votingPower3 * weights[2]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge1, block.timestamp, 5000, (votingPower1 * weights[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge2, block.timestamp, 2000, (votingPower1 * weights[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge3, block.timestamp, 3000, (votingPower1 * weights[2]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge1, block.timestamp, 5000, (votingPower2 * weights[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge2, block.timestamp, 2000, (votingPower2 * weights[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge3, block.timestamp, 3000, (votingPower2 * weights[2]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge1, block.timestamp, 5000, (votingPower3 * weights[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge2, block.timestamp, 2000, (votingPower3 * weights[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge3, block.timestamp, 3000, (votingPower3 * weights[2]) / MAX_WEIGHT);
 
         vm.prank(alice);
         voter.voteMultiple(tokenIds, gauges, weights);

@@ -14,7 +14,7 @@ contract Recast is VoterTest {
     error VoteDelayNotExpired();
     error NoVoteToRecast();
 
-    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 weight, uint256 votes);
+    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes);
     event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
 
     uint256 private constant WEEK = 86400 * 7;
@@ -115,9 +115,9 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 1, gauge1, 5000, gaugeVotes1);
-        emit Voted(address(alice), 1, gauge2, 2000, gaugeVotes2);
-        emit Voted(address(alice), 1, gauge3, 3000, gaugeVotes3);
+        emit Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
+        emit Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
+        emit Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
 
         vm.prank(alice);
         voter.recast(1);
@@ -178,8 +178,8 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 2, gauge2, weights2[0], gaugeVotes2);
-        emit Voted(address(alice), 2, gauge4, weights2[1], gaugeVotes4);
+        emit Voted(address(alice), 2, gauge2, block.timestamp, weights2[0], gaugeVotes2);
+        emit Voted(address(alice), 2, gauge4, block.timestamp, weights2[1], gaugeVotes4);
 
         vm.prank(alice);
         voter.recast(2);
@@ -239,9 +239,9 @@ contract Recast is VoterTest {
         vm.expectEmit(true, true, true, true);
         emit VoteReseted(address(alice), 1, gauge2);
         emit VoteReseted(address(alice), 1, gauge4);
-        emit Voted(address(alice), 1, gauge1, weights[0], gaugeVotes1);
-        emit Voted(address(alice), 1, gauge2, weights[1], gaugeVotes2);
-        emit Voted(address(alice), 1, gauge3, weights[2], gaugeVotes3);
+        emit Voted(address(alice), 1, gauge1, block.timestamp, weights[0], gaugeVotes1);
+        emit Voted(address(alice), 1, gauge2, block.timestamp, weights[1], gaugeVotes2);
+        emit Voted(address(alice), 1, gauge3, block.timestamp, weights[2], gaugeVotes3);
 
         vm.prank(alice);
         voter.recast(1);
@@ -348,14 +348,14 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 1, gauge1, weights[0], (votingPower1 * weights[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 1, gauge2, weights[1], (votingPower1 * weights[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 1, gauge3, weights[2], (votingPower1 * weights[2]) / MAX_WEIGHT);
-        emit Voted(address(alice), 2, gauge2, weights2[0], (votingPower2 * weights2[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 2, gauge4, weights2[1], (votingPower2 * weights2[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge3, weights3[0], (votingPower3 * weights3[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge4, weights3[1], (votingPower3 * weights3[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge1, weights3[2], (votingPower3 * weights3[2]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge1, block.timestamp, weights[0], (votingPower1 * weights[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge2, block.timestamp, weights[1], (votingPower1 * weights[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 1, gauge3, block.timestamp, weights[2], (votingPower1 * weights[2]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge2, block.timestamp, weights2[0], (votingPower2 * weights2[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 2, gauge4, block.timestamp, weights2[1], (votingPower2 * weights2[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge3, block.timestamp, weights3[0], (votingPower3 * weights3[0]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge4, block.timestamp, weights3[1], (votingPower3 * weights3[1]) / MAX_WEIGHT);
+        emit Voted(address(alice), 3, gauge1, block.timestamp, weights3[2], (votingPower3 * weights3[2]) / MAX_WEIGHT);
 
         vm.prank(alice);
         voter.recastMultiple(tokenIds);
