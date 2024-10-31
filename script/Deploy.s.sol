@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import { Counter } from "src/Counter.sol";
+import { Script, console } from "forge-std/Script.sol";
+//import { Counter } from "src/Counter.sol";
 
 contract DeployScript is Script {
     address owner;
@@ -12,11 +12,11 @@ contract DeployScript is Script {
         owner = vm.envAddress("OWNER");
     }
 
-    function _deployCounter() internal returns (Counter) {
-        Counter counter = new Counter();
-        console.log("Zap deployed at: %s", address(counter));
+    function _deployCounter() internal { // returns (Counter) {
+        //Counter counter = new Counter();
+        //console.log("Zap deployed at: %s", address(counter));
 
-        return counter;
+        //return counter;
     }
 
     function _deployContracts() internal {
