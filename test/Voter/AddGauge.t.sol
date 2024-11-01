@@ -9,16 +9,14 @@ contract AddGauge is VoterTest {
     error ZeroAddress();
 
     event GaugeAdded(address indexed gauge);
-    
-    address gauge;
 
     function setUp() public virtual override {
         super.setUp();
-
-        gauge = makeAddr("gauge");
     }
 
-    function test_add_correctly() public {
+    function test_add_correctly(address gauge) public {
+        vm.assume(gauge != address(0));
+
         uint256 prevGaugeCount = voter.gaugesCount();
 
         vm.expectEmit(true, true, true, true);
@@ -40,9 +38,10 @@ contract AddGauge is VoterTest {
         assertEq(voter.gaugeLabel(gauge), "Mock Gauge", "Gauge should have the correct label");
     }
 
-    function test_add_correctly_subsequents() public {
-        address gauge2 = makeAddr("gauge2");
-        address gauge3 = makeAddr("gauge3");
+    function test_add_correctly_subsequents(address gauge, address gauge2, address gauge3) public {
+        vm.assume(gauge != address(0));
+        vm.assume(gauge2 != address(0));
+        vm.assume(gauge3 != address(0));
 
         vm.prank(owner);
         voter.addGauge(gauge, "Mock Gauge");
@@ -84,7 +83,9 @@ contract AddGauge is VoterTest {
         assertEq(voter.gaugeLabel(gauge3), "Mock Gauge 3", "Gauge should have the correct label");
     }
 
-    function test_fail_already_listed() public {
+    function test_fail_already_listed(address gauge) public {
+        vm.assume(gauge != address(0));
+
         vm.prank(owner);
         voter.addGauge(gauge, "Mock Gauge");
 
@@ -99,7 +100,9 @@ contract AddGauge is VoterTest {
         voter.addGauge(zero, "Mock Gauge");
     }
 
-    function test_fail_not_owner() public {
+    function test_fail_not_owner(address gauge) public {
+        vm.assume(gauge != address(0));
+
         vm.expectRevert();
         voter.addGauge(gauge, "Mock Gauge");
     }
