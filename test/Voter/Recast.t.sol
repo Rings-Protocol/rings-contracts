@@ -4,22 +4,6 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract Recast is VoterTest {
-
-    struct Vote { // TODO : better struct packing for gas savings
-        uint256 weight;
-        uint256 votes;
-    }
-
-    error CannotVoteWithNft();
-    error VoteDelayNotExpired();
-    error NoVoteToRecast();
-
-    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes);
-    event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
-
-    uint256 private constant WEEK = 86400 * 7;
-    uint256 private constant MAX_WEIGHT = 10000; // 100% in BPS
-
     address delegate;
 
     address gauge1;
@@ -101,9 +85,9 @@ contract Recast is VoterTest {
         uint256 currentPeriod = voter.currentPeriod();
         uint256 nextPeriod = currentPeriod + WEEK;
 
-        Vote memory oldVote1;
-        Vote memory oldVote2;
-        Vote memory oldVote3;
+        Voter.Vote memory oldVote1;
+        Voter.Vote memory oldVote2;
+        Voter.Vote memory oldVote3;
         (oldVote1.weight, oldVote1.votes) = voter.votes(1, currentPeriod, gauge1);
         (oldVote2.weight, oldVote2.votes) = voter.votes(1, currentPeriod, gauge2);
         (oldVote3.weight, oldVote3.votes) = voter.votes(1, currentPeriod, gauge3);
@@ -115,9 +99,9 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
-        emit Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
-        emit Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
+        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
+        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
+        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
 
         vm.prank(alice);
         voter.recast(1);
@@ -132,9 +116,9 @@ contract Recast is VoterTest {
 
         assertEq(voter.totalVotesPerPeriod(nextPeriod), prevTotalVotes + gaugeVotes1 + gaugeVotes2 + gaugeVotes3);
 
-        Vote memory vote1;
-        Vote memory vote2;
-        Vote memory vote3;
+        Voter.Vote memory vote1;
+        Voter.Vote memory vote2;
+        Voter.Vote memory vote3;
         (vote1.weight, vote1.votes) = voter.votes(1, nextPeriod, gauge1);
         (vote2.weight, vote2.votes) = voter.votes(1, nextPeriod, gauge2);
         (vote3.weight, vote3.votes) = voter.votes(1, nextPeriod, gauge3);
@@ -167,8 +151,8 @@ contract Recast is VoterTest {
         uint256 currentPeriod = voter.currentPeriod();
         uint256 nextPeriod = currentPeriod + WEEK;
 
-        Vote memory oldVote1;
-        Vote memory oldVote2;
+        Voter.Vote memory oldVote1;
+        Voter.Vote memory oldVote2;
         (oldVote1.weight, oldVote1.votes) = voter.votes(2, currentPeriod, gauge2);
         (oldVote2.weight, oldVote2.votes) = voter.votes(2, currentPeriod, gauge4);
 
@@ -178,8 +162,8 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 2, gauge2, block.timestamp, weights2[0], gaugeVotes2);
-        emit Voted(address(alice), 2, gauge4, block.timestamp, weights2[1], gaugeVotes4);
+        emit Voter.Voted(address(alice), 2, gauge2, block.timestamp, weights2[0], gaugeVotes2);
+        emit Voter.Voted(address(alice), 2, gauge4, block.timestamp, weights2[1], gaugeVotes4);
 
         vm.prank(alice);
         voter.recast(2);
@@ -193,8 +177,8 @@ contract Recast is VoterTest {
 
         assertEq(voter.totalVotesPerPeriod(nextPeriod), prevTotalVotes + gaugeVotes2 + gaugeVotes4);
 
-        Vote memory vote1;
-        Vote memory vote2;
+        Voter.Vote memory vote1;
+        Voter.Vote memory vote2;
         (vote1.weight, vote1.votes) = voter.votes(2, nextPeriod, gauge2);
         (vote2.weight, vote2.votes) = voter.votes(2, nextPeriod, gauge4);
         assertEq(vote1.votes, gaugeVotes2);
@@ -237,11 +221,11 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit VoteReseted(address(alice), 1, gauge2);
-        emit VoteReseted(address(alice), 1, gauge4);
-        emit Voted(address(alice), 1, gauge1, block.timestamp, weights[0], gaugeVotes1);
-        emit Voted(address(alice), 1, gauge2, block.timestamp, weights[1], gaugeVotes2);
-        emit Voted(address(alice), 1, gauge3, block.timestamp, weights[2], gaugeVotes3);
+        emit Voter.VoteReseted(address(alice), 1, gauge2);
+        emit Voter.VoteReseted(address(alice), 1, gauge4);
+        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, weights[0], gaugeVotes1);
+        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, weights[1], gaugeVotes2);
+        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, weights[2], gaugeVotes3);
 
         vm.prank(alice);
         voter.recast(1);
@@ -260,9 +244,9 @@ contract Recast is VoterTest {
             prevTotalVotes - oldGaugeVotes2 - oldGaugeVotes4 + gaugeVotes1 + gaugeVotes2 + gaugeVotes3
         );
 
-        Vote memory vote1;
-        Vote memory vote2;
-        Vote memory vote3;
+        Voter.Vote memory vote1;
+        Voter.Vote memory vote2;
+        Voter.Vote memory vote3;
         (vote1.weight, vote1.votes) = voter.votes(1, nextPeriod, gauge1);
         (vote2.weight, vote2.votes) = voter.votes(1, nextPeriod, gauge2);
         (vote3.weight, vote3.votes) = voter.votes(1, nextPeriod, gauge3);
@@ -282,7 +266,7 @@ contract Recast is VoterTest {
     }
 
     function test_fail_nothing_to_recast() public {
-        vm.expectRevert(NoVoteToRecast.selector);
+        vm.expectRevert(Voter.NoVoteToRecast.selector);
 
         vm.prank(bob);
         voter.recast(4);
@@ -292,19 +276,19 @@ contract Recast is VoterTest {
         vm.prank(bob);
         voter.vote(4, gauges, weights);
 
-        vm.expectRevert(VoteDelayNotExpired.selector);
+        vm.expectRevert(Voter.VoteDelayNotExpired.selector);
 
         vm.prank(bob);
         voter.recast(4);
     }
 
     function test_fail_not_allowed_delegate() public {
-        vm.expectRevert(CannotVoteWithNft.selector);
+        vm.expectRevert(Voter.CannotVoteWithNft.selector);
 
         vm.prank(bob);
         voter.recast(1);
     }
-    
+
     function test_voteMultiple_success() public {
         updateNftBalance(1, 165e18); // to mimic voting power decrease
         updateNftBalance(2, 212e18);
@@ -348,14 +332,14 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voted(address(alice), 1, gauge1, block.timestamp, weights[0], (votingPower1 * weights[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 1, gauge2, block.timestamp, weights[1], (votingPower1 * weights[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 1, gauge3, block.timestamp, weights[2], (votingPower1 * weights[2]) / MAX_WEIGHT);
-        emit Voted(address(alice), 2, gauge2, block.timestamp, weights2[0], (votingPower2 * weights2[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 2, gauge4, block.timestamp, weights2[1], (votingPower2 * weights2[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge3, block.timestamp, weights3[0], (votingPower3 * weights3[0]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge4, block.timestamp, weights3[1], (votingPower3 * weights3[1]) / MAX_WEIGHT);
-        emit Voted(address(alice), 3, gauge1, block.timestamp, weights3[2], (votingPower3 * weights3[2]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, weights[0], (votingPower1 * weights[0]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, weights[1], (votingPower1 * weights[1]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, weights[2], (votingPower1 * weights[2]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 2, gauge2, block.timestamp, weights2[0], (votingPower2 * weights2[0]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 2, gauge4, block.timestamp, weights2[1], (votingPower2 * weights2[1]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 3, gauge3, block.timestamp, weights3[0], (votingPower3 * weights3[0]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 3, gauge4, block.timestamp, weights3[1], (votingPower3 * weights3[1]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 3, gauge1, block.timestamp, weights3[2], (votingPower3 * weights3[2]) / MAX_WEIGHT);
 
         vm.prank(alice);
         voter.recastMultiple(tokenIds);
@@ -375,9 +359,9 @@ contract Recast is VoterTest {
 
         assertEq(voter.totalVotesPerPeriod(nextPeriod), prevTotalVotes + gaugeVotes1 + gaugeVotes2 + gaugeVotes3 + gaugeVotes4);
 
-        Vote memory vote1;
-        Vote memory vote2;
-        Vote memory vote3;
+        Voter.Vote memory vote1;
+        Voter.Vote memory vote2;
+        Voter.Vote memory vote3;
         (vote1.weight, vote1.votes) = voter.votes(1, nextPeriod, gauge1);
         (vote2.weight, vote2.votes) = voter.votes(1, nextPeriod, gauge2);
         (vote3.weight, vote3.votes) = voter.votes(1, nextPeriod, gauge3);

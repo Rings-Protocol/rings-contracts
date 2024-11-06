@@ -4,13 +4,6 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract ReviveGauge is VoterTest {
-
-    error GaugeNotKilled();
-    error ZeroAddress();
-    error GaugeNotListed();
-
-    event GaugeRevived(address indexed gauge);
-
     address gauge1;
     address gauge2;
     address gauge3;
@@ -35,7 +28,7 @@ contract ReviveGauge is VoterTest {
         assertEq(voter.isAlive(gauge1), false, "Gauge should be killed");
 
         vm.expectEmit(true, true, true, true);
-        emit GaugeRevived(gauge1);
+        emit Voter.GaugeRevived(gauge1);
 
         vm.prank(owner);
         voter.reviveGauge(gauge1);
@@ -44,19 +37,19 @@ contract ReviveGauge is VoterTest {
     }
 
     function test_fail_not_listed() public {
-        vm.expectRevert(GaugeNotListed.selector);
+        vm.expectRevert(Voter.GaugeNotListed.selector);
         vm.prank(owner);
         voter.reviveGauge(gauge3);
     }
 
     function test_fail_not_killed() public {
-        vm.expectRevert(GaugeNotKilled.selector);
+        vm.expectRevert(Voter.GaugeNotKilled.selector);
         vm.prank(owner);
         voter.reviveGauge(gauge2);
     }
 
     function test_fail_zero_address() public {
-        vm.expectRevert(ZeroAddress.selector);
+        vm.expectRevert(Voter.ZeroAddress.selector);
         vm.prank(owner);
         voter.reviveGauge(zero);
     }

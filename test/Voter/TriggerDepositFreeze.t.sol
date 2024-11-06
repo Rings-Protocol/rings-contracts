@@ -4,14 +4,11 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract TriggerDepositFreeze is VoterTest {
-
-    event DepositFreezeTriggered(bool freeze);
-
     function test_trigger_correctly() public {
         bool isFrozen = voter.isDepositFrozen();
 
         vm.expectEmit(true, true, true, true);
-        emit DepositFreezeTriggered(!isFrozen);
+        emit Voter.DepositFreezeTriggered(!isFrozen);
 
         vm.prank(owner);
         voter.triggerDepositFreeze();
@@ -26,7 +23,7 @@ contract TriggerDepositFreeze is VoterTest {
         bool isFrozen = voter.isDepositFrozen();
 
         vm.expectEmit(true, true, true, true);
-        emit DepositFreezeTriggered(!isFrozen);
+        emit Voter.DepositFreezeTriggered(!isFrozen);
 
         vm.prank(owner);
         voter.triggerDepositFreeze();

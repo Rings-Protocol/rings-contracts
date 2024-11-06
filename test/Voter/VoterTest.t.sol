@@ -11,6 +11,10 @@ contract VoterTest is MainnetTest {
     veNFT ve;
     ScUSD scUSD;
 
+    uint256 internal constant WEEK = 86400 * 7;
+    uint256 internal constant MAX_WEIGHT = 10000; // 100% in BPS
+    uint256 internal constant UNIT = 1e18;
+
     function setUp() public virtual override {
         super.setUp();
         //fork(); // If needed

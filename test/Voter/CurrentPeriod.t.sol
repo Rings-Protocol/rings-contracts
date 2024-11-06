@@ -4,9 +4,6 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract CuurentPeriod is VoterTest {
-
-    uint256 private constant WEEK = 86400 * 7;
-
     function test_return_correct_period() public {
         uint256 startTs = block.timestamp;
 

@@ -4,17 +4,9 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract DepositBudget is VoterTest {
-
-    error NullAmount();
-    error DepositFrozen();
-
-    event BudgetDeposited(address indexed depositor, uint256 indexed period, uint256 amount);
-
-    uint256 private constant WEEK = 86400 * 7;
-
     function setUp() public virtual override {
         super.setUp();
-        
+
         deal(address(scUSD), address(this), 10e30);
         scUSD.approve(address(voter), type(uint256).max);
     }
@@ -32,7 +24,7 @@ contract DepositBudget is VoterTest {
         uint256 prevDepositPeriodBudget = voter.periodBudget(depositPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit BudgetDeposited(address(this), depositPeriod, amount);
+        emit Voter.BudgetDeposited(address(this), depositPeriod, amount);
 
         voter.depositBudget(amount);
 
@@ -57,7 +49,7 @@ contract DepositBudget is VoterTest {
         uint256 prevDepositPeriodBudget = voter.periodBudget(depositPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit BudgetDeposited(address(this), depositPeriod, amount);
+        emit Voter.BudgetDeposited(address(this), depositPeriod, amount);
 
         voter.depositBudget(amount);
 
@@ -81,14 +73,14 @@ contract DepositBudget is VoterTest {
         uint256 prevDepositPeriodBudget2 = voter.periodBudget(depositPeriod2);
 
         vm.expectEmit(true, true, true, true);
-        emit BudgetDeposited(address(this), depositPeriod, amount);
+        emit Voter.BudgetDeposited(address(this), depositPeriod, amount);
 
         voter.depositBudget(amount);
 
         vm.warp(block.timestamp + 7 days);
 
         vm.expectEmit(true, true, true, true);
-        emit BudgetDeposited(address(this), depositPeriod2, amount2);
+        emit Voter.BudgetDeposited(address(this), depositPeriod2, amount2);
 
         voter.depositBudget(amount2);
 
@@ -101,12 +93,12 @@ contract DepositBudget is VoterTest {
         vm.prank(owner);
         voter.triggerDepositFreeze();
 
-        vm.expectRevert(DepositFrozen.selector);
+        vm.expectRevert(Voter.DepositFrozen.selector);
         voter.depositBudget(1e18);
     }
 
     function test_fail_null_amount() public {
-        vm.expectRevert(NullAmount.selector);
+        vm.expectRevert(Voter.NullAmount.selector);
         voter.depositBudget(0);
     }
 

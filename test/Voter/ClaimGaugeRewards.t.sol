@@ -4,14 +4,6 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract ClaimGaugeRewards is VoterTest {
-
-    event RewardClaimed(address indexed gauge, uint256 amount);
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    uint256 private constant WEEK = 86400 * 7;
-    uint256 private constant MAX_WEIGHT = 10000; // 100% in BPS
-    uint256 private constant UNIT = 1e18;
-
     address gauge1;
     address gauge2;
     address gauge3;
@@ -41,7 +33,7 @@ contract ClaimGaugeRewards is VoterTest {
         gauge5 = makeAddr("gauge5");
 
         wrongGauge = makeAddr("wrongGauge");
-        
+
         deal(address(scUSD), address(this), 10e30);
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
@@ -110,8 +102,8 @@ contract ClaimGaugeRewards is VoterTest {
         uint256 prevVoterBalance = scUSD.balanceOf(address(voter));
 
         vm.expectEmit(true, true, true, true);
-        emit RewardClaimed(gauge1, expectedReward);
-        emit Transfer(address(voter), gauge1, expectedReward);
+        emit Voter.RewardClaimed(gauge1, expectedReward);
+        emit IERC20.Transfer(address(voter), gauge1, expectedReward);
 
         uint256 claimedAmount = voter.claimGaugeRewards(gauge1);
 
@@ -173,8 +165,8 @@ contract ClaimGaugeRewards is VoterTest {
         uint256 prevVoterBalance = scUSD.balanceOf(address(voter));
 
         vm.expectEmit(true, true, true, true);
-        emit RewardClaimed(gauge1, expectedReward);
-        emit Transfer(address(voter), gauge1, expectedReward);
+        emit Voter.RewardClaimed(gauge1, expectedReward);
+        emit IERC20.Transfer(address(voter), gauge1, expectedReward);
 
         uint256 claimedAmount = voter.claimGaugeRewards(gauge1);
 

@@ -4,20 +4,6 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract Reset is VoterTest {
-
-    struct Vote { // TODO : better struct packing for gas savings
-        uint256 weight;
-        uint256 votes;
-    }
-
-    error CannotVoteWithNft();
-    error VoteDelayNotExpired();
-
-    event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
-
-    uint256 private constant WEEK = 86400 * 7;
-    uint256 private constant MAX_WEIGHT = 10000; // 100% in BPS
-
     address delegate;
 
     address gauge1;
@@ -103,9 +89,9 @@ contract Reset is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit VoteReseted(address(alice), 1, gauge1);
-        emit VoteReseted(address(alice), 1, gauge2);
-        emit VoteReseted(address(alice), 1, gauge3);
+        emit Voter.VoteReseted(address(alice), 1, gauge1);
+        emit Voter.VoteReseted(address(alice), 1, gauge2);
+        emit Voter.VoteReseted(address(alice), 1, gauge3);
 
         vm.prank(alice);
         voter.reset(1);
@@ -123,9 +109,9 @@ contract Reset is VoterTest {
             prevTotalVotes - oldGaugeVotes1 - oldGaugeVotes2 - oldGaugeVotes3
         );
 
-        Vote memory vote1;
-        Vote memory vote2;
-        Vote memory vote3;
+        Voter.Vote memory vote1;
+        Voter.Vote memory vote2;
+        Voter.Vote memory vote3;
         (vote1.weight, vote1.votes) = voter.votes(1, nextPeriod, gauge1);
         (vote2.weight, vote2.votes) = voter.votes(1, nextPeriod, gauge2);
         (vote3.weight, vote3.votes) = voter.votes(1, nextPeriod, gauge3);
@@ -189,8 +175,8 @@ contract Reset is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit VoteReseted(address(alice), 2, gauge2);
-        emit VoteReseted(address(alice), 2, gauge4);
+        emit Voter.VoteReseted(address(alice), 2, gauge2);
+        emit Voter.VoteReseted(address(alice), 2, gauge4);
 
         vm.prank(alice);
         voter.reset(2);
@@ -207,8 +193,8 @@ contract Reset is VoterTest {
             prevTotalVotes - oldGaugeVotes2 - oldGaugeVotes4
         );
 
-        Vote memory vote1;
-        Vote memory vote2;
+        Voter.Vote memory vote1;
+        Voter.Vote memory vote2;
         (vote1.weight, vote1.votes) = voter.votes(2, nextPeriod, gauge2);
         (vote2.weight, vote2.votes) = voter.votes(2, nextPeriod, gauge4);
         assertEq(vote1.votes, 0);
@@ -225,14 +211,14 @@ contract Reset is VoterTest {
         vm.prank(bob);
         voter.vote(4, gauges, weights);
 
-        vm.expectRevert(VoteDelayNotExpired.selector);
+        vm.expectRevert(Voter.VoteDelayNotExpired.selector);
 
         vm.prank(bob);
         voter.reset(4);
     }
 
     function test_fail_not_allowed_delegate() public {
-        vm.expectRevert(CannotVoteWithNft.selector);
+        vm.expectRevert(Voter.CannotVoteWithNft.selector);
 
         vm.prank(bob);
         voter.reset(1);
@@ -265,14 +251,14 @@ contract Reset is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit VoteReseted(address(alice), 1, gauge1);
-        emit VoteReseted(address(alice), 1, gauge2);
-        emit VoteReseted(address(alice), 1, gauge3);
-        emit VoteReseted(address(alice), 2, gauge2);
-        emit VoteReseted(address(alice), 2, gauge4);
-        emit VoteReseted(address(alice), 3, gauge3);
-        emit VoteReseted(address(alice), 3, gauge4);
-        emit VoteReseted(address(alice), 3, gauge1);
+        emit Voter.VoteReseted(address(alice), 1, gauge1);
+        emit Voter.VoteReseted(address(alice), 1, gauge2);
+        emit Voter.VoteReseted(address(alice), 1, gauge3);
+        emit Voter.VoteReseted(address(alice), 2, gauge2);
+        emit Voter.VoteReseted(address(alice), 2, gauge4);
+        emit Voter.VoteReseted(address(alice), 3, gauge3);
+        emit Voter.VoteReseted(address(alice), 3, gauge4);
+        emit Voter.VoteReseted(address(alice), 3, gauge1);
 
         vm.prank(alice);
         voter.resetMultiple(nfts);
@@ -295,9 +281,9 @@ contract Reset is VoterTest {
             prevTotalVotes - oldGauge1Votes - oldGauge2Votes - oldGauge3Votes - oldGauge4Votes
         );
 
-        Vote memory vote1;
-        Vote memory vote2;
-        Vote memory vote3;
+        Voter.Vote memory vote1;
+        Voter.Vote memory vote2;
+        Voter.Vote memory vote3;
         (vote1.weight, vote1.votes) = voter.votes(1, nextPeriod, gauge1);
         (vote2.weight, vote2.votes) = voter.votes(1, nextPeriod, gauge2);
         (vote3.weight, vote3.votes) = voter.votes(1, nextPeriod, gauge3);

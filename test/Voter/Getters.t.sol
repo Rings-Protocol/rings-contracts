@@ -5,11 +5,6 @@ import "./VoterTest.t.sol";
 import { Voter } from "src/Voter.sol";
 
 contract Getters is VoterTest {
-    
-    uint256 private constant UNIT = 1e18;
-    uint256 private constant WEEK = 86400 * 7;
-    uint256 private constant MAX_WEIGHT = 10000; // 100% in BPS
-
     address gauge1;
     address gauge2;
     address gauge3;

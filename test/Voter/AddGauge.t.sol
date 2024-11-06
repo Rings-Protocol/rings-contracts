@@ -4,23 +4,13 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract AddGauge is VoterTest {
-
-    error GaugeAlreadyListed();
-    error ZeroAddress();
-
-    event GaugeAdded(address indexed gauge);
-
-    function setUp() public virtual override {
-        super.setUp();
-    }
-
     function test_add_correctly(address gauge) public {
         vm.assume(gauge != address(0));
 
         uint256 prevGaugeCount = voter.gaugesCount();
 
         vm.expectEmit(true, true, true, true);
-        emit GaugeAdded(gauge);
+        emit Voter.GaugeAdded(gauge);
 
         vm.prank(owner);
         voter.addGauge(gauge, "Mock Gauge");
@@ -49,13 +39,13 @@ contract AddGauge is VoterTest {
         uint256 prevGaugeCount = voter.gaugesCount();
 
         vm.expectEmit(true, true, true, true);
-        emit GaugeAdded(gauge2);
+        emit Voter.GaugeAdded(gauge2);
 
         vm.prank(owner);
         voter.addGauge(gauge2, "Mock Gauge 2");
 
         vm.expectEmit(true, true, true, true);
-        emit GaugeAdded(gauge3);
+        emit Voter.GaugeAdded(gauge3);
 
         vm.prank(owner);
         voter.addGauge(gauge3, "Mock Gauge 3");
@@ -89,13 +79,13 @@ contract AddGauge is VoterTest {
         vm.prank(owner);
         voter.addGauge(gauge, "Mock Gauge");
 
-        vm.expectRevert(GaugeAlreadyListed.selector);
+        vm.expectRevert(Voter.GaugeAlreadyListed.selector);
         vm.prank(owner);
         voter.addGauge(gauge, "Mock Gauge");
     }
 
     function test_fail_address_zero() public {
-        vm.expectRevert(ZeroAddress.selector);
+        vm.expectRevert(Voter.ZeroAddress.selector);
         vm.prank(owner);
         voter.addGauge(zero, "Mock Gauge");
     }

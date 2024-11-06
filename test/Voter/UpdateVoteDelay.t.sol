@@ -4,18 +4,13 @@ pragma solidity 0.8.24;
 import "./VoterTest.t.sol";
 
 contract UpdateVoteDelay is VoterTest {
-
-    error InvalidParameter();
-
-    event VoteDelayUpdated(uint256 oldVoteDelay, uint256 newVoteDelay);
-
     uint256 newVoteDelay = 6 hours;
 
     function test_update_correctly() public {
         uint256 oldVoteDelay = voter.voteDelay();
 
         vm.expectEmit(true, true, true, true);
-        emit VoteDelayUpdated(oldVoteDelay, newVoteDelay);
+        emit Voter.VoteDelayUpdated(oldVoteDelay, newVoteDelay);
 
         vm.prank(owner);
         voter.updateVoteDelay(newVoteDelay);
@@ -24,7 +19,7 @@ contract UpdateVoteDelay is VoterTest {
     }
 
     function test_fail_invalid_parameter() public {
-        vm.expectRevert(InvalidParameter.selector);
+        vm.expectRevert(Voter.InvalidParameter.selector);
         vm.prank(owner);
         voter.updateVoteDelay(9 days);
     }
