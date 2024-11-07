@@ -55,5 +55,4 @@ contract KillGauge is VoterTest {
         vm.expectRevert();
         voter.killGauge(gauge1);
     }
-
 }

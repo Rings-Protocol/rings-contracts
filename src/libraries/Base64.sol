@@ -10,11 +10,11 @@ library Base64 {
 
     /// @notice Encodes some bytes to the base64 representation
     function encode(bytes memory data) internal pure returns (string memory) {
-        uint len = data.length;
+        uint256 len = data.length;
         if (len == 0) return "";
 
         // multiply by 4/3 rounded up
-        uint encodedLen = 4 * ((len + 2) / 3);
+        uint256 encodedLen = 4 * ((len + 2) / 3);
 
         // Add some extra buffer at the end
         bytes memory result = new bytes(encodedLen + 32);
@@ -25,11 +25,7 @@ library Base64 {
             let tablePtr := add(table, 1)
             let resultPtr := add(result, 32)
 
-            for {
-                let i := 0
-            } lt(i, len) {
-
-            } {
+            for { let i := 0 } lt(i, len) { } {
                 i := add(i, 3)
                 let input := and(mload(add(data, i)), 0xffffff)
 
@@ -48,12 +44,8 @@ library Base64 {
             }
 
             switch mod(len, 3)
-            case 1 {
-                mstore(sub(resultPtr, 2), shl(240, 0x3d3d))
-            }
-            case 2 {
-                mstore(sub(resultPtr, 1), shl(248, 0x3d))
-            }
+            case 1 { mstore(sub(resultPtr, 2), shl(240, 0x3d3d)) }
+            case 2 { mstore(sub(resultPtr, 1), shl(248, 0x3d)) }
 
             mstore(result, encodedLen)
         }

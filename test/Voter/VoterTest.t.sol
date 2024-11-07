@@ -13,15 +13,15 @@ contract VoterTest is MainnetTest {
     ScUSD scUSD;
     VeArtProxy veArtProxy;
 
-    uint256 internal constant WEEK = 86400 * 7;
-    uint256 internal constant MAX_WEIGHT = 10000; // 100% in BPS
+    uint256 internal constant WEEK = 86_400 * 7;
+    uint256 internal constant MAX_WEIGHT = 10_000; // 100% in BPS
     uint256 internal constant UNIT = 1e18;
-    uint internal constant MAXTIME = 2 * 365 * 86400;
+    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
 
     function setUp() public virtual override {
         super.setUp();
         //fork(); // If needed
-        vm.warp(1729068300); // random timestamp taken
+        vm.warp(1_729_068_300); // random timestamp taken
 
         vm.startPrank(owner);
 
@@ -35,7 +35,7 @@ contract VoterTest is MainnetTest {
         vm.stopPrank();
     }
 
-    function createNft(address owner, uint256 balance) public returns (uint) {
+    function createNft(address owner, uint256 balance) public returns (uint256) {
         deal(address(scUSD), owner, balance);
 
         vm.startPrank(owner);
@@ -46,8 +46,7 @@ contract VoterTest is MainnetTest {
         return tokenId;
     }
 
-    function updateNftBalance(uint tokenId, uint256 balance) public {
+    function updateNftBalance(uint256 tokenId, uint256 balance) public {
         // ve.setBalanceOfNFT(tokenId, balance);
     }
-
 }

@@ -99,5 +99,4 @@ contract AddGauge is VoterTest {
         vm.expectRevert();
         voter.addGauge(gauge, "Mock Gauge");
     }
-
 }

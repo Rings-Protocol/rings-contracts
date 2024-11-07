@@ -101,5 +101,4 @@ contract DepositBudget is VoterTest {
         vm.expectRevert(Voter.NullAmount.selector);
         voter.depositBudget(0);
     }
-
 }

@@ -104,8 +104,7 @@ contract Reset is VoterTest {
         assertEq(voter.votesPerPeriod(nextPeriod, gauge3), prevGauge3Votes - oldGaugeVotes3);
 
         assertEq(
-            voter.totalVotesPerPeriod(nextPeriod),
-            prevTotalVotes - oldGaugeVotes1 - oldGaugeVotes2 - oldGaugeVotes3
+            voter.totalVotesPerPeriod(nextPeriod), prevTotalVotes - oldGaugeVotes1 - oldGaugeVotes2 - oldGaugeVotes3
         );
 
         Voter.Vote memory vote1;
@@ -122,7 +121,6 @@ contract Reset is VoterTest {
         assertEq(vote3.weight, 0);
 
         assertEq(ve.voted(1), false);
-
     }
 
     function test_reset_does_nothing_if_no_votes_casted() public {
@@ -147,13 +145,9 @@ contract Reset is VoterTest {
         assertEq(voter.votesPerPeriod(nextPeriod, gauge3), prevGaugeVotes3);
         assertEq(voter.votesPerPeriod(nextPeriod, gauge4), prevGaugeVotes4);
 
-        assertEq(
-            voter.totalVotesPerPeriod(nextPeriod),
-            prevTotalVotes
-        );
+        assertEq(voter.totalVotesPerPeriod(nextPeriod), prevTotalVotes);
 
         assertEq(ve.voted(4), false);
-
     }
 
     function test_reset_votes_correctly_with_delegation() public {
@@ -187,10 +181,7 @@ contract Reset is VoterTest {
         assertEq(voter.votesPerPeriod(nextPeriod, gauge2), prevGauge2Votes - oldGaugeVotes2);
         assertEq(voter.votesPerPeriod(nextPeriod, gauge4), prevGauge4Votes - oldGaugeVotes4);
 
-        assertEq(
-            voter.totalVotesPerPeriod(nextPeriod),
-            prevTotalVotes - oldGaugeVotes2 - oldGaugeVotes4
-        );
+        assertEq(voter.totalVotesPerPeriod(nextPeriod), prevTotalVotes - oldGaugeVotes2 - oldGaugeVotes4);
 
         Voter.Vote memory vote1;
         Voter.Vote memory vote2;
@@ -202,7 +193,6 @@ contract Reset is VoterTest {
         assertEq(vote2.weight, 0);
 
         assertEq(ve.voted(2), false);
-
     }
 
     function test_fail_voting_delay() public {
@@ -243,7 +233,8 @@ contract Reset is VoterTest {
         uint256 oldGauge1Votes = ((votingPower * weights[0]) / MAX_WEIGHT) + ((votingPower3 * weights3[2]) / MAX_WEIGHT);
         uint256 oldGauge2Votes = ((votingPower * weights[1]) / MAX_WEIGHT) + ((votingPower2 * weights2[0]) / MAX_WEIGHT);
         uint256 oldGauge3Votes = ((votingPower * weights[2]) / MAX_WEIGHT) + ((votingPower3 * weights3[0]) / MAX_WEIGHT);
-        uint256 oldGauge4Votes = ((votingPower2 * weights2[1]) / MAX_WEIGHT) + ((votingPower3 * weights3[1]) / MAX_WEIGHT);
+        uint256 oldGauge4Votes =
+            ((votingPower2 * weights2[1]) / MAX_WEIGHT) + ((votingPower3 * weights3[1]) / MAX_WEIGHT);
 
         uint256 prevGauge1Votes = voter.votesPerPeriod(nextPeriod, gauge1);
         uint256 prevGauge2Votes = voter.votesPerPeriod(nextPeriod, gauge2);
@@ -316,7 +307,5 @@ contract Reset is VoterTest {
         assertEq(ve.voted(1), false);
         assertEq(ve.voted(2), false);
         assertEq(ve.voted(3), false);
-
     }
-
 }

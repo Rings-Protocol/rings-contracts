@@ -37,7 +37,10 @@ contract VotingEscrowTest is MainnetTest {
         return tokenId;
     }
 
-    function createLockForPranked(address pranker, address recipient, uint256 value, uint256 duration) public returns (uint256) {
+    function createLockForPranked(address pranker, address recipient, uint256 value, uint256 duration)
+        public
+        returns (uint256)
+    {
         vm.startPrank(pranker);
         deal(address(scUSD), pranker, value);
         scUSD.approve(address(votingEscrow), value);

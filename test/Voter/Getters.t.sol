@@ -27,7 +27,7 @@ contract Getters is VoterTest {
         gauge2 = makeAddr("gauge2");
         gauge3 = makeAddr("gauge3");
         gauge4 = makeAddr("gauge4");
-        
+
         deal(address(scUSD), address(this), 10e30);
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
@@ -249,5 +249,4 @@ contract Getters is VoterTest {
         assertEq(voter.getGaugeRelativeWeight(gauge4), 0);
         assertEq(voter.getGaugeRelativeWeightAtPeriod(gauge4, inspectPeriod), 0);
     }
-
 }

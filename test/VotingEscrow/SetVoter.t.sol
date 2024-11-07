@@ -7,22 +7,22 @@ contract SetVoter is VotingEscrowTest {
     address internal team;
 
     function setUp() public override {
-      super.setUp();
+        super.setUp();
 
-      team = makeAddr("team");
-      vm.prank(owner);
-      votingEscrow.setTeam(team);
+        team = makeAddr("team");
+        vm.prank(owner);
+        votingEscrow.setTeam(team);
     }
 
     function test_setVoter_Normal() public {
-      vm.prank(team);
-      votingEscrow.setVoter(address(alice));
-      assertEq(votingEscrow.voter(), address(alice), "Voter is not alice");
+        vm.prank(team);
+        votingEscrow.setVoter(address(alice));
+        assertEq(votingEscrow.voter(), address(alice), "Voter is not alice");
     }
 
     function test_setVoter_NotOwner() public {
-      vm.prank(alice);
-      vm.expectRevert();
-      votingEscrow.setVoter(address(alice));
+        vm.prank(alice);
+        vm.expectRevert();
+        votingEscrow.setVoter(address(alice));
     }
 }

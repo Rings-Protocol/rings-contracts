@@ -149,7 +149,7 @@ contract ClaimGaugeRewards is VoterTest {
         uint256 expectedReward;
         uint256 periodIter = firstPeriod;
 
-        while(periodIter <= currentPeriod) {
+        while (periodIter <= currentPeriod) {
             uint256 gaugeVotes = voter.votesPerPeriod(periodIter, gauge1);
             uint256 totalVotes = voter.totalVotesPerPeriod(periodIter);
 
@@ -176,7 +176,6 @@ contract ClaimGaugeRewards is VoterTest {
         assertEq(scUSD.balanceOf(address(voter)), prevVoterBalance - expectedReward);
 
         assertEq(voter.gaugesDistributionTimestamp(gauge1), currentPeriod + WEEK);
-
     }
 
     function test_no_claim_no_votes_received() public {
@@ -191,7 +190,6 @@ contract ClaimGaugeRewards is VoterTest {
 
         assertEq(scUSD.balanceOf(gauge1), prevGaugeBalancer);
         assertEq(scUSD.balanceOf(address(voter)), prevVoterBalance);
-
     }
 
     function test_no_claim_not_listed() public {
@@ -206,7 +204,6 @@ contract ClaimGaugeRewards is VoterTest {
 
         assertEq(scUSD.balanceOf(gauge1), prevGaugeBalancer);
         assertEq(scUSD.balanceOf(address(voter)), prevVoterBalance);
-
     }
 
     function test_no_claim_killed() public {
@@ -221,7 +218,5 @@ contract ClaimGaugeRewards is VoterTest {
 
         assertEq(scUSD.balanceOf(gauge1), prevGaugeBalancer);
         assertEq(scUSD.balanceOf(address(voter)), prevVoterBalance);
-
     }
-
 }

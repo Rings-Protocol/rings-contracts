@@ -58,5 +58,4 @@ contract ReviveGauge is VoterTest {
         vm.expectRevert();
         voter.reviveGauge(gauge1);
     }
-
 }
