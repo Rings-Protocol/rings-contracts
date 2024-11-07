@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
+import { ReentrancyGuard } from "solady/utils/ReentrancyGuard.sol";
 import { IVotingEscrow } from './interfaces/IVotingEscrow.sol';
 
 contract Voter is Ownable2Step, ReentrancyGuard {
