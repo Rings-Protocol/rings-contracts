@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { IVotingEscrow } from './interfaces/IVotingEscrow.sol';
 
 contract Voter is Ownable2Step, ReentrancyGuard {
-    using SafeERC20 for IERC20;
+    using SafeTransferLib for address;
 
     uint256 public constant PERIOD_DURATION = 7 days;
     uint256 public constant WEEK = 86400 * 7;
@@ -18,7 +16,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     uint256 public constant MAX_WEIGHT = 10000; // 100% in BPS
 
     address public immutable ve;
-    IERC20 public immutable baseAsset;
+    address public immutable baseAsset;
 
     bool public isDepositFrozen;
     address[] public gauges;
@@ -95,7 +93,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         address _baseAsset
     ) Ownable(_owner) {
         ve = _ve;
-        baseAsset = IERC20(_baseAsset);
+        baseAsset = _baseAsset;
     }
 
     function currentPeriod() public view returns(uint256) {
