@@ -21,14 +21,18 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     IERC20 public immutable baseAsset;
 
     bool public isDepositFrozen;
-
     address[] public gauges;
 
     uint256 public voteDelay = 1 hours; // To prevent spamming votes
 
-    struct Vote { // TODO : better struct packing for gas savings
+    struct Vote {
         uint256 weight;
         uint256 votes;
+    }
+
+    struct GaugeStatus {
+        bool isGauge;
+        bool isAlive;
     }
 
     struct CastedVote {
@@ -57,10 +61,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     mapping(uint256 => uint256) public lastVoted;
     // nft => timestamp => bool
     mapping(uint256 => mapping(uint256 => bool)) public voteCastedPeriod;
-    // gauge => boolean [is a gauge?]
-    mapping(address => bool) public isGauge;
-    // gauge => boolean [is the gauge alive?]
-    mapping(address => bool) public isAlive;
+    // gauge => status (isAlive and isGauge)
+    mapping(address => GaugeStatus) public gaugeStatus;
 
     event GaugeAdded(address indexed gauge);
     event GaugeKilled(address indexed gauge);
@@ -212,8 +214,9 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         
         for(uint256 i; i < length;) {
             address gauge = gaugeList[i];
-            if(!isGauge[gauge]) revert GaugeNotListed();
-            if(!isAlive[gauge]) revert KilledGauge();
+            GaugeStatus memory status = gaugeStatus[gauge];
+            if(!status.isGauge) revert GaugeNotListed();
+            if(!status.isAlive) revert KilledGauge();
 
             uint256 gaugeVotes = (_votes * weights[i]) / MAX_WEIGHT;
             totalUsedWeights += weights[i];
@@ -318,9 +321,6 @@ contract Voter is Ownable2Step, ReentrancyGuard {
             uint256 relativeWeight = _getGaugeRelativeWeight(gauge, period);
 
             claimedAmount += (relativeWeight * periodBudget[period]) / UNIT;
-
-            // TODO: do we want a tracking of how much claimed per period per gauge ?
-
             period += WEEK;
         }
 
@@ -335,10 +335,11 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     }
 
     function addGauge(address gauge, string memory label) external onlyOwner returns (uint256 index) {
-        if(isGauge[gauge]) revert GaugeAlreadyListed();
+        GaugeStatus storage status = gaugeStatus[gauge];
+        if(status.isGauge) revert GaugeAlreadyListed();
 
-        isGauge[gauge] = true;
-        isAlive[gauge] = true;
+        status.isGauge[gauge] = true;
+        status.isAlive[gauge] = true;
 
         index = gauges.length;
         gauges.push(gauge);
@@ -354,9 +355,10 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     }
 
     function killGauge(address gauge) external onlyOwner {
-        if(!isGauge[gauge]) revert GaugeNotListed();
-        if(!isAlive[gauge]) revert GaugeAlreadyKilled();
-        isAlive[gauge] = false;
+        GaugeStatus storage status = gaugeStatus[gauge];
+        if(!status.isGauge) revert GaugeNotListed();
+        if(!status.isAlive) revert GaugeAlreadyKilled();
+        status.isAlive[gauge] = false;
 
         uint256 _currentPeriod = currentPeriod();
         totalVotesPerPeriod[_currentPeriod] -= votesPerPeriod[_currentPeriod][gauge]; 
@@ -365,9 +367,10 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     }
 
     function reviveGauge(address gauge) external onlyOwner {
-        if(!isGauge[gauge]) revert GaugeNotListed();
-        if(isAlive[gauge]) revert GaugeNotKilled();
-        isAlive[gauge] = true;
+        GaugeStatus storage status = gaugeStatus[gauge];
+        if(!status.isGauge) revert GaugeNotListed();
+        if(status.isAlive) revert GaugeNotKilled();
+        status.isAlive[gauge] = true;
         
         emit GaugeRevived(gauge);
     }
