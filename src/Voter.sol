@@ -366,7 +366,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     }
 
     function updateVoteDelay(uint256 newVoteDelay) external onlyOwner {
-        if(newVoteDelay >= 7 days) revert InvalidParameter();
+        if(newVoteDelay >= PERIOD_DURATION) revert InvalidParameter();
 
         uint256 oldVoteDelay = voteDelay;
         voteDelay = newVoteDelay;
