@@ -26,7 +26,7 @@ contract Vote is VoterTest {
         gauge5 = makeAddr("gauge5");
 
         wrongGauge = makeAddr("wrongGauge");
-        
+
         deal(address(scUSD), address(this), 10e30);
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
@@ -43,7 +43,7 @@ contract Vote is VoterTest {
         voter.addGauge(gauge5, "Mock Gauge 5");
         vm.stopPrank();
     }
-    
+
     function test_vote_success() public {
         address[] memory gauges = new address[](3);
         uint256[] memory weights = new uint256[](3);
@@ -105,7 +105,7 @@ contract Vote is VoterTest {
 
         assertEq(ve.voted(1), true);
     }
-    
+
     function test_vote_multiple_nfts() public {
         address[] memory gauges = new address[](3);
         uint256[] memory weights = new uint256[](3);
@@ -487,7 +487,6 @@ contract Vote is VoterTest {
         weights[1] = 2000;
         weights[2] = 3000;
 
-
         vm.prank(alice);
         voter.vote(1, gauges, weights);
 
@@ -512,7 +511,7 @@ contract Vote is VoterTest {
         vm.prank(bob);
         voter.vote(1, gauges, weights);
     }
-    
+
     function test_voteMultiple_success() public {
         address[] memory gauges = new address[](3);
         uint256[] memory weights = new uint256[](3);
@@ -637,5 +636,4 @@ contract Vote is VoterTest {
         assertEq(ve.voted(2), true);
         assertEq(ve.voted(3), true);
     }
-
 }

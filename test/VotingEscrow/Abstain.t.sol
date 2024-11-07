@@ -8,26 +8,26 @@ contract Abstain is VotingEscrowTest {
     address internal voter;
 
     function setUp() public override {
-      super.setUp();
+        super.setUp();
 
-      team = makeAddr("team");
-      voter = makeAddr("voter");
+        team = makeAddr("team");
+        voter = makeAddr("voter");
 
-      vm.prank(owner);
-      votingEscrow.setTeam(team);
-      vm.prank(team);
-      votingEscrow.setVoter(address(voter));
+        vm.prank(owner);
+        votingEscrow.setTeam(team);
+        vm.prank(team);
+        votingEscrow.setVoter(address(voter));
     }
 
     function testFuzz_abstain_Normal(uint256 tokenId) public {
-      vm.prank(voter);
-      votingEscrow.abstain(tokenId);
-      assertEq(votingEscrow.voted(tokenId), false, "Voted is not false");
+        vm.prank(voter);
+        votingEscrow.abstain(tokenId);
+        assertEq(votingEscrow.voted(tokenId), false, "Voted is not false");
     }
 
     function testFuzz_abstain_NotVoter(uint256 tokenId) public {
-      vm.prank(alice);
-      vm.expectRevert();
-      votingEscrow.abstain(tokenId);
+        vm.prank(alice);
+        vm.expectRevert();
+        votingEscrow.abstain(tokenId);
     }
 }

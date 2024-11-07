@@ -8,26 +8,26 @@ contract Voting is VotingEscrowTest {
     address internal voter;
 
     function setUp() public override {
-      super.setUp();
+        super.setUp();
 
-      team = makeAddr("team");
-      voter = makeAddr("voter");
+        team = makeAddr("team");
+        voter = makeAddr("voter");
 
-      vm.prank(owner);
-      votingEscrow.setTeam(team);
-      vm.prank(team);
-      votingEscrow.setVoter(address(voter));
+        vm.prank(owner);
+        votingEscrow.setTeam(team);
+        vm.prank(team);
+        votingEscrow.setVoter(address(voter));
     }
 
     function testFuzz_voting_Normal(uint256 tokenId) public {
-      vm.prank(voter);
-      votingEscrow.voting(tokenId);
-      assertEq(votingEscrow.voted(tokenId), true, "Voted is not true");
+        vm.prank(voter);
+        votingEscrow.voting(tokenId);
+        assertEq(votingEscrow.voted(tokenId), true, "Voted is not true");
     }
 
     function testFuzz_voting_NotVoter(uint256 tokenId) public {
-      vm.prank(alice);
-      vm.expectRevert();
-      votingEscrow.voting(tokenId);
+        vm.prank(alice);
+        vm.expectRevert();
+        votingEscrow.voting(tokenId);
     }
 }

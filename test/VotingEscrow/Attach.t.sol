@@ -8,38 +8,38 @@ contract Attach is VotingEscrowTest {
     address internal voter;
 
     function setUp() public override {
-      super.setUp();
+        super.setUp();
 
-      team = makeAddr("team");
-      voter = makeAddr("voter");
+        team = makeAddr("team");
+        voter = makeAddr("voter");
 
-      vm.prank(owner);
-      votingEscrow.setTeam(team);
-      vm.prank(team);
-      votingEscrow.setVoter(address(voter));
+        vm.prank(owner);
+        votingEscrow.setTeam(team);
+        vm.prank(team);
+        votingEscrow.setVoter(address(voter));
     }
 
     function testFuzz_attach_Normal(uint256 tokenId) public {
-      vm.prank(voter);
-      votingEscrow.attach(tokenId);
-      assertEq(votingEscrow.attachments(tokenId), 1, "Number of attachments is not 1");
+        vm.prank(voter);
+        votingEscrow.attach(tokenId);
+        assertEq(votingEscrow.attachments(tokenId), 1, "Number of attachments is not 1");
     }
 
     function testFuzz_attach_multiple(uint256 tokenId, uint16 multiple) public {
-      vm.startPrank(voter);
+        vm.startPrank(voter);
 
-      for (uint256 i = 0; i < multiple; i++) {
-        votingEscrow.attach(tokenId);
-      }
+        for (uint256 i = 0; i < multiple; i++) {
+            votingEscrow.attach(tokenId);
+        }
 
-      vm.stopPrank();
+        vm.stopPrank();
 
-      assertEq(votingEscrow.attachments(tokenId), multiple, "Number of attachments is not multiple");
+        assertEq(votingEscrow.attachments(tokenId), multiple, "Number of attachments is not multiple");
     }
 
     function testFuzz_attach_NotVoter(uint256 tokenId) public {
-      vm.prank(alice);
-      vm.expectRevert();
-      votingEscrow.attach(tokenId);
+        vm.prank(alice);
+        vm.expectRevert();
+        votingEscrow.attach(tokenId);
     }
 }
