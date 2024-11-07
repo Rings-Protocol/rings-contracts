@@ -9,6 +9,7 @@ import { IVotingEscrow } from './interfaces/IVotingEscrow.sol';
 /// @title Voter contract
 /// @author Rings Protocol
 /// @notice This contract allows users to vote on gauges to distribute rewards
+/// it is a fork of Thena's Voter contract
 contract Voter is Ownable2Step, ReentrancyGuard {
     using SafeTransferLib for address;
 
