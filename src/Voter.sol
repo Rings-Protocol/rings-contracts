@@ -76,6 +76,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
     error InvalidParameter();
     error NullAmount();
+    error ZeroAddress();
     error ArrayLengthMismatch();
     error MaxArraySizeExceeded();
     error GaugeNotListed();
@@ -85,7 +86,9 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     error GaugeNotKilled();
     error VoteDelayNotExpired();
     error CannotVoteWithNft();
+    error NoVotingPower();
     error VoteWeightOverflow();
+    error NoVoteToRecast();
     error DepositFrozen();
 
     /*//////////////////////////////////////////////////////////////
@@ -94,10 +97,10 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
 
     uint256 public constant PERIOD_DURATION = 7 days;
-    uint256 public constant WEEK = 86400 * 7;
+    uint256 private constant WEEK = 86400 * 7;
     uint256 private constant UNIT = 1e18;
-    uint256 public constant MAX_TOKEN_ID_LENGTH = 10;
-    uint256 public constant MAX_WEIGHT = 10000; // 100% in BPS
+    uint256 private constant MAX_TOKEN_ID_LENGTH = 10;
+    uint256 private constant MAX_WEIGHT = 10000; // 100% in BPS
 
     address public immutable ve;
     address public immutable baseAsset;
@@ -114,9 +117,9 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     // timestamp => budget amount
     mapping(uint256 => uint256) public periodBudget;
     // gauge => index
-    mapping(address => uint256) internal gaugeIndex;
+    mapping(address => uint256) public gaugeIndex;
     // gauge => label
-    mapping(address => string) internal gaugeLabel;
+    mapping(address => string) public gaugeLabel;
     // gauge => next period the gauge can claim rewards
     mapping(address => uint256) public gaugesDistributionTimestamp;
     // nft => timestamp => gauge => votes
@@ -124,9 +127,9 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     // nft => timestamp => gauges
     mapping(uint256 => mapping(uint256 => address[])) public gaugeVote;
     // timestamp => gauge => votes
-    mapping(uint256 => mapping(address => uint256)) internal votesPerPeriod;
+    mapping(uint256 => mapping(address => uint256)) public votesPerPeriod;
     // timestamp => total votes
-    mapping(uint256 => uint256) internal totalVotesPerPeriod;
+    mapping(uint256 => uint256) public totalVotesPerPeriod;
     // nft => timestamp
     mapping(uint256 => uint256) public lastVoted;
     // nft => timestamp => bool
@@ -331,6 +334,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
         address[] memory _gauges = gaugeVote[tokenId][currentPeriod()];
         uint256 length = _gauges.length;
+        if(length == 0) revert NoVoteToRecast();
         uint256[] memory weights = new uint256[](length);
         for(uint256 i; i < length; ++i) {
             weights[i] = votes[tokenId][currentPeriod()][_gauges[i]].weight;
@@ -363,7 +367,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         uint256 length = tokenIds.length;
         if(length > MAX_TOKEN_ID_LENGTH) revert MaxArraySizeExceeded();
         for(uint256 i; i < length; ++i) {
-            recast(tokenIds[i]);
+            reset(tokenIds[i]);
         }
     }
 
@@ -375,7 +379,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         uint256 length = tokenIds.length;
         if(length > MAX_TOKEN_ID_LENGTH) revert MaxArraySizeExceeded();
         for(uint256 i; i < length; ++i) {
-            reset(tokenIds[i]);
+            recast(tokenIds[i]);
         }
     }
 
@@ -434,6 +438,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @custom:require onlyOwner
      */
     function addGauge(address gauge, string memory label) external onlyOwner returns (uint256 index) {
+        if(gauge == address(0)) revert ZeroAddress();
         GaugeStatus storage status = gaugeStatus[gauge];
         if(status.isGauge) revert GaugeAlreadyListed();
 
@@ -460,13 +465,11 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @custom:require onlyOwner
      */
     function killGauge(address gauge) external onlyOwner {
+        if(gauge == address(0)) revert ZeroAddress();
         GaugeStatus storage status = gaugeStatus[gauge];
         if(!status.isGauge) revert GaugeNotListed();
         if(!status.isAlive) revert GaugeAlreadyKilled();
         status.isAlive = false;
-
-        uint256 _currentPeriod = currentPeriod();
-        totalVotesPerPeriod[_currentPeriod] -= votesPerPeriod[_currentPeriod][gauge]; 
 
         emit GaugeKilled(gauge);
     }
@@ -478,6 +481,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @custom:require onlyOwner
      */
     function reviveGauge(address gauge) external onlyOwner {
+        if(gauge == address(0)) revert ZeroAddress();
         GaugeStatus storage status = gaugeStatus[gauge];
         if(!status.isGauge) revert GaugeNotListed();
         if(status.isAlive) revert GaugeNotKilled();
@@ -517,11 +521,14 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     //////////////////////////////////////////////////////////////*/
 
     function _voteDelay(uint256 tokenId) internal view {
-        if(block.timestamp >= lastVoted[tokenId] + voteDelay) revert VoteDelayNotExpired();
+        if(block.timestamp <= lastVoted[tokenId] + voteDelay) revert VoteDelayNotExpired();
     }
 
     function _getGaugeRelativeWeight(address gauge, uint256 period) internal view returns (uint256) {
+        GaugeStatus memory status = gaugeStatus[gauge];
+        if(!status.isGauge || !status.isAlive) return 0;
         uint256 totalVotes = totalVotesPerPeriod[period];
+        if(totalVotes == 0) return 0;
         uint256 gaugeVotes = votesPerPeriod[period][gauge];
         return (gaugeVotes * UNIT) / totalVotes;
     }
@@ -532,7 +539,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
             address[] memory _gauges = gaugeVote[tokenId][nextPeriod];
             uint256 length = _gauges.length;
             uint256 totalVotesRemoved;
-            for(uint256 i; i < length; ++i) {
+            for(uint256 i; i < length;) {
                 address gauge = _gauges[i];
                 uint256 voteAmount = votes[tokenId][nextPeriod][gauge].votes;
                 votesPerPeriod[nextPeriod][gauge] -= voteAmount;
@@ -540,6 +547,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
                 delete votes[tokenId][nextPeriod][gauge];
 
                 emit VoteReseted(voter, tokenId, gauge);
+
+                unchecked { i++; }
             }
             delete gaugeVote[tokenId][nextPeriod];
             totalVotesPerPeriod[nextPeriod] -= totalVotesRemoved;
@@ -552,16 +561,20 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         uint256 length = gaugeList.length;
 
         uint256 _votes = IVotingEscrow(ve).balanceOfNFT(tokenId);
+        if(_votes == 0) revert NoVotingPower();
         uint256 totalUsedWeights;
+        uint256 totalVotesCasted;
 
-        for(uint256 i; i < length; ++i) {
+        for(uint256 i; i < length;) {
             address gauge = gaugeList[i];
+            if(gauge == address(0)) revert ZeroAddress();
             GaugeStatus memory status = gaugeStatus[gauge];
             if(!status.isGauge) revert GaugeNotListed();
             if(!status.isAlive) revert KilledGauge();
 
             uint256 gaugeVotes = (_votes * weights[i]) / MAX_WEIGHT;
             totalUsedWeights += weights[i];
+            totalVotesCasted += gaugeVotes;
 
             gaugeVote[tokenId][nextPeriod].push(gauge);
 
@@ -569,11 +582,14 @@ contract Voter is Ownable2Step, ReentrancyGuard {
             votes[tokenId][nextPeriod][gauge] = Vote(weights[i], gaugeVotes);
 
             emit Voted(voter, tokenId, gauge, weights[i], gaugeVotes);
+
+            unchecked { i++; }
         }
 
         if(totalUsedWeights > MAX_WEIGHT) revert VoteWeightOverflow();
+        if(totalUsedWeights > 0) IVotingEscrow(ve).voting(tokenId);
 
-        totalVotesPerPeriod[nextPeriod] += _votes;
+        totalVotesPerPeriod[nextPeriod] += totalVotesCasted;
 
         voteCastedPeriod[tokenId][nextPeriod] = true;
     }
