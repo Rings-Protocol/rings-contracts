@@ -2,18 +2,21 @@
 pragma solidity ^0.8.24;
 
 import "../MainnetTest.t.sol";
-import { Voter } from "src/Voter.sol";
-import { veNFT } from "test/mocks/veNFT.sol";
+import { VotingEscrow } from "src/VotingEscrow.sol";
+import { VeArtProxy } from "src/VeArtProxy.sol";
 import { ScUSD } from "test/mocks/scUSD.sol";
+import { Voter } from "src/Voter.sol";
 
 contract VoterTest is MainnetTest {
     Voter voter;
-    veNFT ve;
+    VotingEscrow ve;
     ScUSD scUSD;
+    VeArtProxy veArtProxy;
 
     uint256 internal constant WEEK = 86400 * 7;
     uint256 internal constant MAX_WEIGHT = 10000; // 100% in BPS
     uint256 internal constant UNIT = 1e18;
+    uint internal constant MAXTIME = 2 * 365 * 86400;
 
     function setUp() public virtual override {
         super.setUp();
@@ -23,23 +26,28 @@ contract VoterTest is MainnetTest {
         vm.startPrank(owner);
 
         scUSD = new ScUSD();
-        ve = new veNFT();
+        veArtProxy = new VeArtProxy();
+        ve = new VotingEscrow(address(scUSD), address(veArtProxy));
         voter = new Voter(address(owner), address(ve), address(scUSD));
+
+        ve.setVoter(address(voter));
 
         vm.stopPrank();
     }
 
-    function createNft(uint tokenId, address owner, uint256 balance) public {
-        ve.setNftOwner(tokenId, owner);
-        ve.setBalanceOfNFT(tokenId, balance);
-    }
+    function createNft(address owner, uint256 balance) public returns (uint) {
+        deal(address(scUSD), owner, balance);
 
-    function delegateVotingControl(address delegate, uint tokenId) public {
-        ve.delegateVotingControl(delegate, tokenId);
+        vm.startPrank(owner);
+        scUSD.approve(address(ve), balance);
+        uint256 tokenId = ve.create_lock(balance, MAXTIME);
+        vm.stopPrank();
+
+        return tokenId;
     }
 
     function updateNftBalance(uint tokenId, uint256 balance) public {
-        ve.setBalanceOfNFT(tokenId, balance);
+        // ve.setBalanceOfNFT(tokenId, balance);
     }
 
 }

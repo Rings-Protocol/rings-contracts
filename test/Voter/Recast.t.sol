@@ -27,15 +27,15 @@ contract Recast is VoterTest {
         gauge2 = makeAddr("gauge2");
         gauge3 = makeAddr("gauge3");
         gauge4 = makeAddr("gauge4");
-        
+
         deal(address(scUSD), address(this), 10e30);
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
 
-        createNft(1, address(alice), 175e18);
-        createNft(2, address(bob), 225e18);
-        createNft(3, address(alice), 150e18);
-        createNft(4, address(bob), 12e18);
+        createNft(address(alice), 175e18);
+        createNft(address(bob), 225e18);
+        createNft(address(alice), 150e18);
+        createNft(address(bob), 12e18);
 
         vm.startPrank(owner);
         voter.addGauge(gauge1, "Mock Gauge 1");
@@ -134,14 +134,12 @@ contract Recast is VoterTest {
         assertEq(voter.gaugeVote(1, nextPeriod, 2), gauge3);
 
         assertEq(ve.voted(1), true);
-        assertEq(ve._abstained(1), false);
 
     }
 
     function test_recast_votes_correctly_with_delegation() public {
-        ve.delegateVotingControl(address(alice), 2);
-
-        updateNftBalance(2, 212e18); // to mimic voting power decrease
+        vm.prank(bob);
+        ve.approveVoting(address(alice), 2);
 
         uint256 votingPower = ve.balanceOfNFT(2);
 
@@ -190,13 +188,10 @@ contract Recast is VoterTest {
         assertEq(voter.gaugeVote(2, nextPeriod, 1), gauge4);
 
         assertEq(ve.voted(2), true);
-        assertEq(ve._abstained(2), false);
 
     }
 
     function test_recast_success_reset_previous_vote() public {
-        updateNftBalance(1, 165e18); // to mimic voting power decrease
-
         uint256 votingPower = ve.balanceOfNFT(1);
 
         uint256 oldGaugeVotes2 = (votingPower * weights2[0]) / MAX_WEIGHT;
@@ -206,6 +201,8 @@ contract Recast is VoterTest {
         voter.vote(1, gauges2, weights2);
 
         vm.warp(block.timestamp + 6 hours);
+
+        votingPower = ve.balanceOfNFT(1);
 
         uint256 gaugeVotes1 = (votingPower * weights[0]) / MAX_WEIGHT;
         uint256 gaugeVotes2 = (votingPower * weights[1]) / MAX_WEIGHT;
@@ -262,7 +259,6 @@ contract Recast is VoterTest {
         assertEq(voter.gaugeVote(1, nextPeriod, 2), gauge3);
 
         assertEq(ve.voted(1), true);
-        assertEq(ve._abstained(1), false);
     }
 
     function test_fail_nothing_to_recast() public {
@@ -290,16 +286,13 @@ contract Recast is VoterTest {
     }
 
     function test_voteMultiple_success() public {
-        updateNftBalance(1, 165e18); // to mimic voting power decrease
-        updateNftBalance(2, 212e18);
-        updateNftBalance(3, 135e18);
-
         uint256[] memory tokenIds = new uint256[](3);
         tokenIds[0] = 1;
         tokenIds[1] = 2;
         tokenIds[2] = 3;
 
-        ve.delegateVotingControl(address(alice), 2);
+        vm.prank(bob);
+        ve.approveVoting(address(alice), 2);
 
         uint256 totalCastedVotes = 0;
 
@@ -403,9 +396,6 @@ contract Recast is VoterTest {
         assertEq(ve.voted(1), true);
         assertEq(ve.voted(2), true);
         assertEq(ve.voted(3), true);
-        assertEq(ve._abstained(1), false);
-        assertEq(ve._abstained(2), false);
-        assertEq(ve._abstained(3), false);
     }
 
 }

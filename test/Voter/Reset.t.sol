@@ -27,15 +27,15 @@ contract Reset is VoterTest {
         gauge2 = makeAddr("gauge2");
         gauge3 = makeAddr("gauge3");
         gauge4 = makeAddr("gauge4");
-        
+
         deal(address(scUSD), address(this), 10e30);
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
 
-        createNft(1, address(alice), 175e18);
-        createNft(2, address(bob), 225e18);
-        createNft(3, address(alice), 150e18);
-        createNft(4, address(bob), 12e18);
+        createNft(address(alice), 175e18);
+        createNft(address(bob), 225e18);
+        createNft(address(alice), 150e18);
+        createNft(address(bob), 12e18);
 
         vm.startPrank(owner);
         voter.addGauge(gauge1, "Mock Gauge 1");
@@ -69,12 +69,11 @@ contract Reset is VoterTest {
 
         vm.prank(alice);
         voter.vote(3, gauges3, weights3);
-
-        vm.warp(block.timestamp + 6 hours);
     }
 
     function test_reset_votes_correctly() public {
         uint256 votingPower = ve.balanceOfNFT(1);
+        vm.warp(block.timestamp + 6 hours);
 
         uint256 nextPeriod = voter.currentPeriod() + WEEK;
 
@@ -123,7 +122,6 @@ contract Reset is VoterTest {
         assertEq(vote3.weight, 0);
 
         assertEq(ve.voted(1), false);
-        assertEq(ve._abstained(1), true);
 
     }
 
@@ -155,14 +153,15 @@ contract Reset is VoterTest {
         );
 
         assertEq(ve.voted(4), false);
-        assertEq(ve._abstained(4), true);
 
     }
 
     function test_reset_votes_correctly_with_delegation() public {
-        ve.delegateVotingControl(address(alice), 2);
+        vm.prank(bob);
+        ve.approveVoting(address(alice), 2);
 
         uint256 votingPower = ve.balanceOfNFT(2);
+        vm.warp(block.timestamp + 6 hours);
 
         uint256 nextPeriod = voter.currentPeriod() + WEEK;
 
@@ -203,7 +202,6 @@ contract Reset is VoterTest {
         assertEq(vote2.weight, 0);
 
         assertEq(ve.voted(2), false);
-        assertEq(ve._abstained(2), true);
 
     }
 
@@ -218,6 +216,8 @@ contract Reset is VoterTest {
     }
 
     function test_fail_not_allowed_delegate() public {
+        vm.warp(block.timestamp + 6 hours);
+
         vm.expectRevert(Voter.CannotVoteWithNft.selector);
 
         vm.prank(bob);
@@ -225,7 +225,8 @@ contract Reset is VoterTest {
     }
 
     function test_multipleReset_votes_correctly() public {
-        ve.delegateVotingControl(address(alice), 2);
+        vm.prank(bob);
+        ve.approveVoting(address(alice), 2);
 
         uint256[] memory nfts = new uint256[](3);
         nfts[0] = 1;
@@ -235,6 +236,7 @@ contract Reset is VoterTest {
         uint256 votingPower = ve.balanceOfNFT(1);
         uint256 votingPower2 = ve.balanceOfNFT(2);
         uint256 votingPower3 = ve.balanceOfNFT(3);
+        vm.warp(block.timestamp + 6 hours);
 
         uint256 nextPeriod = voter.currentPeriod() + WEEK;
 
@@ -314,9 +316,6 @@ contract Reset is VoterTest {
         assertEq(ve.voted(1), false);
         assertEq(ve.voted(2), false);
         assertEq(ve.voted(3), false);
-        assertEq(ve._abstained(1), true);
-        assertEq(ve._abstained(2), true);
-        assertEq(ve._abstained(3), true);
 
     }
 

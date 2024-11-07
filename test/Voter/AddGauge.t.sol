@@ -32,6 +32,9 @@ contract AddGauge is VoterTest {
         vm.assume(gauge != address(0));
         vm.assume(gauge2 != address(0));
         vm.assume(gauge3 != address(0));
+        vm.assume(gauge != gauge2);
+        vm.assume(gauge != gauge3);
+        vm.assume(gauge2 != gauge3);
 
         vm.prank(owner);
         voter.addGauge(gauge, "Mock Gauge");

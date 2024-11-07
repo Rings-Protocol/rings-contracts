@@ -31,9 +31,9 @@ contract Vote is VoterTest {
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
 
-        createNft(1, address(alice), 175e18);
-        createNft(2, address(bob), 225e18);
-        createNft(3, address(alice), 0);
+        createNft(address(alice), 175e18);
+        createNft(address(bob), 225e18);
+        createNft(address(alice), 100e18);
 
         vm.startPrank(owner);
         voter.addGauge(gauge1, "Mock Gauge 1");
@@ -104,7 +104,6 @@ contract Vote is VoterTest {
         assertEq(voter.gaugeVote(1, nextPeriod, 2), gauge3);
 
         assertEq(ve.voted(1), true);
-        assertEq(ve._abstained(1), false);
     }
     
     function test_vote_multiple_nfts() public {
@@ -179,7 +178,7 @@ contract Vote is VoterTest {
         nftBalance = bound(nftBalance, 10e16, 10e21);
         _weight1 = bound(_weight1, 100, 9900);
 
-        updateNftBalance(1, nftBalance);
+        vm.mockCall(address(ve), abi.encodeWithSelector(ve.balanceOfNFT.selector, 1), abi.encode(nftBalance));
 
         address[] memory gauges = new address[](2);
         uint256[] memory weights = new uint256[](2);
@@ -227,7 +226,6 @@ contract Vote is VoterTest {
         assertEq(voter.gaugeVote(1, nextPeriod, 1), gauge2);
 
         assertEq(ve.voted(1), true);
-        assertEq(ve._abstained(1), false);
     }
 
     function test_vote_delegate_success() public {
@@ -240,7 +238,8 @@ contract Vote is VoterTest {
         weights[1] = 2000;
         weights[2] = 3000;
 
-        ve.delegateVotingControl(address(bob), 1);
+        vm.prank(alice);
+        ve.approveVoting(address(bob), 1);
 
         uint256 votingPower = ve.balanceOfNFT(1);
 
@@ -292,7 +291,6 @@ contract Vote is VoterTest {
         assertEq(voter.gaugeVote(1, nextPeriod, 2), gauge3);
 
         assertEq(ve.voted(1), true);
-        assertEq(ve._abstained(1), false);
     }
 
     function test_vote_success_reset_previous_vote() public {
@@ -321,6 +319,7 @@ contract Vote is VoterTest {
         voter.vote(1, oldGauges, oldWeights);
 
         vm.warp(block.timestamp + 6 hours);
+        votingPower = ve.balanceOfNFT(1);
 
         uint256 gaugeVotes1 = (votingPower * weights[0]) / MAX_WEIGHT;
         uint256 gaugeVotes2 = (votingPower * weights[1]) / MAX_WEIGHT;
@@ -377,7 +376,6 @@ contract Vote is VoterTest {
         assertEq(voter.gaugeVote(1, nextPeriod, 2), gauge3);
 
         assertEq(ve.voted(1), true);
-        assertEq(ve._abstained(1), false);
     }
 
     function test_fail_array_length_mismatch() public {
@@ -472,6 +470,7 @@ contract Vote is VoterTest {
         weights[1] = 2000;
         weights[2] = 3000;
 
+        vm.warp(block.timestamp + MAXTIME);
         vm.expectRevert(Voter.NoVotingPower.selector);
 
         vm.prank(alice);
@@ -529,9 +528,8 @@ contract Vote is VoterTest {
         tokenIds[1] = 2;
         tokenIds[2] = 3;
 
-        ve.delegateVotingControl(address(alice), 2);
-
-        updateNftBalance(3, 150e18);
+        vm.prank(bob);
+        ve.approveVoting(address(alice), 2);
 
         uint256 totalCastedVotes = 0;
 
@@ -638,9 +636,6 @@ contract Vote is VoterTest {
         assertEq(ve.voted(1), true);
         assertEq(ve.voted(2), true);
         assertEq(ve.voted(3), true);
-        assertEq(ve._abstained(1), false);
-        assertEq(ve._abstained(2), false);
-        assertEq(ve._abstained(3), false);
     }
 
 }

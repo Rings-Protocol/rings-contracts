@@ -38,10 +38,10 @@ contract ClaimGaugeRewards is VoterTest {
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
 
-        createNft(1, address(alice), 175e18);
-        createNft(2, address(bob), 225e18);
-        createNft(3, address(alice), 150e18);
-        createNft(4, address(bob), 12e18);
+        createNft(address(alice), 175e18);
+        createNft(address(bob), 225e18);
+        createNft(address(alice), 150e18);
+        createNft(address(bob), 12e18);
 
         vm.startPrank(owner);
         voter.addGauge(gauge1, "Mock Gauge 1");

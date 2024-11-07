@@ -32,9 +32,9 @@ contract Getters is VoterTest {
         scUSD.approve(address(voter), type(uint256).max);
         voter.depositBudget(10e19);
 
-        createNft(1, address(alice), 175e18);
-        createNft(2, address(bob), 225e18);
-        createNft(3, address(alice), 150e18);
+        createNft(address(alice), 175e18);
+        createNft(address(bob), 225e18);
+        createNft(address(alice), 150e18);
 
         vm.startPrank(owner);
         voter.addGauge(gauge1, "Mock Gauge 1");
@@ -77,9 +77,6 @@ contract Getters is VoterTest {
 
         vm.warp(startTs + 12 days);
 
-        updateNftBalance(1, 160e18);
-        updateNftBalance(2, 205e18);
-        updateNftBalance(3, 137e18);
         voter.depositBudget(10e19);
         vm.prank(alice);
         voter.recast(1);
@@ -90,9 +87,6 @@ contract Getters is VoterTest {
 
         vm.warp(startTs + 19 days);
 
-        updateNftBalance(1, 145e18);
-        updateNftBalance(2, 185e18);
-        updateNftBalance(3, 125e18);
         voter.depositBudget(10e19);
         vm.prank(alice);
         voter.recast(1);
@@ -105,7 +99,7 @@ contract Getters is VoterTest {
     }
 
     function test_getNftCurrentVotes() public view {
-        uint256 votingPower = 145e18;
+        uint256 votingPower = ve.balanceOfNFT(1);
 
         Voter.CastedVote[] memory castedVotes = voter.getNftCurrentVotes(1);
 
@@ -125,7 +119,7 @@ contract Getters is VoterTest {
     }
 
     function test_getNftCurrentVotesAtPeriod() public view {
-        uint256 votingPower = 150e18;
+        uint256 votingPower = ve.balanceOfNFTAt(3, startTs + 5 days);
 
         Voter.CastedVote[] memory castedVotes = voter.getNftCurrentVotesAtPeriod(3, inspectPeriod);
 
@@ -145,16 +139,21 @@ contract Getters is VoterTest {
     }
 
     function test_getTotalVotes() public view {
-        uint256 expectedTotal = 455e18;
+        uint256 expectedTotal = ve.balanceOfNFT(1);
+        expectedTotal += ve.balanceOfNFT(2);
+        expectedTotal += ve.balanceOfNFT(3);
 
         assertEq(voter.getTotalVotes(), expectedTotal);
     }
 
     function test_getGaugeVotes() public view {
-        uint256 expectedGauge1Votes = ((145e18 * weights[0]) / MAX_WEIGHT) + ((125e18 * weights3[2]) / MAX_WEIGHT);
-        uint256 expectedGauge2Votes = ((145e18 * weights[1]) / MAX_WEIGHT) + ((185e18 * weights2[0]) / MAX_WEIGHT);
-        uint256 expectedGauge3Votes = ((145e18 * weights[2]) / MAX_WEIGHT) + ((125e18 * weights3[0]) / MAX_WEIGHT);
-        uint256 expectedGauge4Votes = ((185e18 * weights2[1]) / MAX_WEIGHT) + ((125e18 * weights3[1]) / MAX_WEIGHT);
+        uint256 balance1 = ve.balanceOfNFT(1);
+        uint256 balance2 = ve.balanceOfNFT(2);
+        uint256 balance3 = ve.balanceOfNFT(3);
+        uint256 expectedGauge1Votes = ((balance1 * weights[0]) / MAX_WEIGHT) + ((balance3 * weights3[2]) / MAX_WEIGHT);
+        uint256 expectedGauge2Votes = ((balance1 * weights[1]) / MAX_WEIGHT) + ((balance2 * weights2[0]) / MAX_WEIGHT);
+        uint256 expectedGauge3Votes = ((balance1 * weights[2]) / MAX_WEIGHT) + ((balance3 * weights3[0]) / MAX_WEIGHT);
+        uint256 expectedGauge4Votes = ((balance2 * weights2[1]) / MAX_WEIGHT) + ((balance3 * weights3[1]) / MAX_WEIGHT);
 
         assertEq(voter.getGaugeVotes(gauge1), expectedGauge1Votes);
         assertEq(voter.getGaugeVotes(gauge2), expectedGauge2Votes);
@@ -163,24 +162,32 @@ contract Getters is VoterTest {
     }
 
     function test_getNftVotesOnGauge() public view {
-        assertEq(voter.getNftVotesOnGauge(1, gauge1), (145e18 * weights[0]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGauge(1, gauge2), (145e18 * weights[1]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGauge(2, gauge2), (185e18 * weights2[0]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGauge(2, gauge4), (185e18 * weights2[1]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGauge(3, gauge4), (125e18 * weights3[1]) / MAX_WEIGHT);
+        uint256 balance1 = ve.balanceOfNFT(1);
+        uint256 balance2 = ve.balanceOfNFT(2);
+        uint256 balance3 = ve.balanceOfNFT(3);
+        assertEq(voter.getNftVotesOnGauge(1, gauge1), (balance1 * weights[0]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGauge(1, gauge2), (balance1 * weights[1]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGauge(2, gauge2), (balance2 * weights2[0]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGauge(2, gauge4), (balance2 * weights2[1]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGauge(3, gauge4), (balance3 * weights3[1]) / MAX_WEIGHT);
     }
 
     function test_getTotalVotesAtPeriod() public view {
-        uint256 expectedTotal = 550e18;
+        uint256 expectedTotal = ve.balanceOfNFTAt(1, startTs + 5 days);
+        expectedTotal += ve.balanceOfNFTAt(2, startTs + 5 days);
+        expectedTotal += ve.balanceOfNFTAt(3, startTs + 5 days);
 
         assertEq(voter.getTotalVotesAtPeriod(inspectPeriod), expectedTotal);
     }
 
     function test_getGaugeVotesAtPeriod() public view {
-        uint256 expectedGauge1Votes = ((175e18 * weights[0]) / MAX_WEIGHT) + ((150e18 * weights3[2]) / MAX_WEIGHT);
-        uint256 expectedGauge2Votes = ((175e18 * weights[1]) / MAX_WEIGHT) + ((225e18 * weights2[0]) / MAX_WEIGHT);
-        uint256 expectedGauge3Votes = ((175e18 * weights[2]) / MAX_WEIGHT) + ((150e18 * weights3[0]) / MAX_WEIGHT);
-        uint256 expectedGauge4Votes = ((225e18 * weights2[1]) / MAX_WEIGHT) + ((150e18 * weights3[1]) / MAX_WEIGHT);
+        uint256 balance1 = ve.balanceOfNFTAt(1, startTs + 5 days);
+        uint256 balance2 = ve.balanceOfNFTAt(2, startTs + 5 days);
+        uint256 balance3 = ve.balanceOfNFTAt(3, startTs + 5 days);
+        uint256 expectedGauge1Votes = ((balance1 * weights[0]) / MAX_WEIGHT) + ((balance3 * weights3[2]) / MAX_WEIGHT);
+        uint256 expectedGauge2Votes = ((balance1 * weights[1]) / MAX_WEIGHT) + ((balance2 * weights2[0]) / MAX_WEIGHT);
+        uint256 expectedGauge3Votes = ((balance1 * weights[2]) / MAX_WEIGHT) + ((balance3 * weights3[0]) / MAX_WEIGHT);
+        uint256 expectedGauge4Votes = ((balance2 * weights2[1]) / MAX_WEIGHT) + ((balance3 * weights3[1]) / MAX_WEIGHT);
 
         assertEq(voter.getGaugeVotesAtPeriod(gauge1, inspectPeriod), expectedGauge1Votes);
         assertEq(voter.getGaugeVotesAtPeriod(gauge2, inspectPeriod), expectedGauge2Votes);
@@ -189,11 +196,15 @@ contract Getters is VoterTest {
     }
 
     function test_getNftVotesOnGaugeAtPeriod() public view {
-        assertEq(voter.getNftVotesOnGaugeAtPeriod(1, gauge1, inspectPeriod), (175e18 * weights[0]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGaugeAtPeriod(1, gauge2, inspectPeriod), (175e18 * weights[1]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGaugeAtPeriod(2, gauge2, inspectPeriod), (225e18 * weights2[0]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGaugeAtPeriod(2, gauge4, inspectPeriod), (225e18 * weights2[1]) / MAX_WEIGHT);
-        assertEq(voter.getNftVotesOnGaugeAtPeriod(3, gauge4, inspectPeriod), (150e18 * weights3[1]) / MAX_WEIGHT);
+        uint256 balance1 = ve.balanceOfNFTAt(1, startTs + 5 days);
+        uint256 balance2 = ve.balanceOfNFTAt(2, startTs + 5 days);
+        uint256 balance3 = ve.balanceOfNFTAt(3, startTs + 5 days);
+
+        assertEq(voter.getNftVotesOnGaugeAtPeriod(1, gauge1, inspectPeriod), (balance1 * weights[0]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGaugeAtPeriod(1, gauge2, inspectPeriod), (balance1 * weights[1]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGaugeAtPeriod(2, gauge2, inspectPeriod), (balance2 * weights2[0]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGaugeAtPeriod(2, gauge4, inspectPeriod), (balance2 * weights2[1]) / MAX_WEIGHT);
+        assertEq(voter.getNftVotesOnGaugeAtPeriod(3, gauge4, inspectPeriod), (balance3 * weights3[1]) / MAX_WEIGHT);
     }
 
     function test_getGaugeRelativeWeight() public view {
