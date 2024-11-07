@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.24;
 
-
 import {IERC721, IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
@@ -95,7 +94,6 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @param token_addr `THENA` token address
     constructor(address token_addr, address art_proxy) {
         token = token_addr;
-        voter = msg.sender;
         team = msg.sender;
         artProxy = art_proxy;
 
@@ -1202,7 +1200,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
         uint i;
         uint totalWeight = 0;
-        for(i = 0; i < amounts.length; i++){
+        uint length = amounts.length;
+        for(i = 0; i < length; ++i){
             totalWeight += amounts[i];
         }
 
@@ -1218,7 +1217,7 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         
         // mint 
         uint _value = 0;
-        for(i = 0; i < amounts.length; i++){   
+        for(i = 0; i < length; ++i){   
             ++tokenId;
             _tokenId = tokenId;
             _mint(_to, _tokenId);
@@ -1273,7 +1272,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         }
         uint[] storage _tokenIds = checkpoints[account][nCheckpoints - 1].tokenIds;
         uint votes = 0;
-        for (uint i = 0; i < _tokenIds.length; i++) {
+        uint length = _tokenIds.length;
+        for (uint i = 0; i < length; ++i) {
             uint tId = _tokenIds[i];
             votes = votes + _balanceOfNFT(tId, block.timestamp);
         }
@@ -1320,7 +1320,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         // Sum votes
         uint[] storage _tokenIds = checkpoints[account][_checkIndex].tokenIds;
         uint votes = 0;
-        for (uint i = 0; i < _tokenIds.length; i++) {
+        uint length = _tokenIds.length;
+        for (uint i = 0; i < length; ++i) {
             uint tId = _tokenIds[i];
             // Use the provided input timestamp here to get the right decay
             votes = votes + _balanceOfNFT(tId, timestamp);
@@ -1352,7 +1353,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                     nextSrcRepNum
                 ].tokenIds;
                 // All the same except _tokenId
-                for (uint i = 0; i < srcRepOld.length; i++) {
+                uint length = srcRepOld.length;
+                for (uint i = 0; i < length; ++i) {
                     uint tId = srcRepOld[i];
                     if (tId != _tokenId) {
                         srcRepNew.push(tId);
@@ -1376,7 +1378,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                     dstRepOld.length + 1 <= MAX_DELEGATES,
                     "dstRep would have too many tokenIds"
                 );
-                for (uint i = 0; i < dstRepOld.length; i++) {
+                uint length = dstRepOld.length;
+                for (uint i = 0; i < length; ++i) {
                     uint tId = dstRepOld[i];
                     dstRepNew.push(tId);
                 }
@@ -1422,7 +1425,8 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                     nextSrcRepNum
                 ].tokenIds;
                 // All the same except what owner owns
-                for (uint i = 0; i < srcRepOld.length; i++) {
+                uint length = srcRepOld.length;
+                for (uint i = 0; i < length; ++i) {
                     uint tId = srcRepOld[i];
                     if (idToOwner[tId] != owner) {
                         srcRepNew.push(tId);
@@ -1447,12 +1451,13 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                     "dstRep would have too many tokenIds"
                 );
                 // All the same
-                for (uint i = 0; i < dstRepOld.length; i++) {
+                uint length = dstRepOld.length;
+                for (uint i = 0; i < length; ++i) {
                     uint tId = dstRepOld[i];
                     dstRepNew.push(tId);
                 }
                 // Plus all that's owned
-                for (uint i = 0; i < ownerTokenCount; i++) {
+                for (uint i = 0; i < ownerTokenCount; ++i) {
                     uint tId = ownerToNFTokenIdList[owner][i];
                     dstRepNew.push(tId);
                 }
