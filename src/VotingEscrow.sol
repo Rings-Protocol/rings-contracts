@@ -95,7 +95,6 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @param token_addr `THENA` token address
     constructor(address token_addr, address art_proxy) {
         token = token_addr;
-        voter = msg.sender;
         team = msg.sender;
         artProxy = art_proxy;
 
