@@ -5,6 +5,7 @@ import { Script, console } from "forge-std/Script.sol";
 import { VeArtProxy } from "src/VeArtProxy.sol";
 import { VotingEscrow } from "src/VotingEscrow.sol";
 import { Voter } from "src/Voter.sol";
+import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract DeployScript is Script {
     address owner;
@@ -24,7 +25,10 @@ contract DeployScript is Script {
     }
 
     function _deployVeArtProxy() internal {
-        veArtProxy = new VeArtProxy();
+        VeArtProxy veArtImpl = new VeArtProxy();
+        veArtProxy = VeArtProxy(address(new TransparentUpgradeableProxy(address(veArtImpl), owner, "")));
+
+        console.log("VeArtImplementation deployed at: ", address(veArtImpl));
         console.log("VeArtProxy deployed at: ", address(veArtProxy));
     }
 
