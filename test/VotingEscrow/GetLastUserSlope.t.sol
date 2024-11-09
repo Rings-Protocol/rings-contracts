@@ -31,7 +31,7 @@ contract GetLastUserSlope is VotingEscrowTest {
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        vm.warp(block.timestamp + uint256(waitWeeks) * 7 * 86_400);
+        vm.warp(vm.getBlockTimestamp() + uint256(waitWeeks) * 7 * 86_400);
         votingEscrow.checkpoint();
 
         assertEq(

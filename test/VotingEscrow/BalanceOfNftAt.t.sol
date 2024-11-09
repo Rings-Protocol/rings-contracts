@@ -13,14 +13,14 @@ contract BalanceOfNFTAt is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400 + 1, MAXTIME);
         wait = bound(wait, 1, duration - 7 days);
 
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
         uint256 lockedEnd = votingEscrow.locked__end(tokenId);
         uint256 slope = amount / MAXTIME;
         uint256 bias = slope * (lockedEnd - startTimestamp);
         uint256 estimated = bias - (slope * wait);
-        assertEq(votingEscrow.balanceOfNFTAt(tokenId, block.timestamp + wait), estimated, "Balance should be amount");
+        assertEq(votingEscrow.balanceOfNFTAt(tokenId, vm.getBlockTimestamp() + wait), estimated, "Balance should be amount");
     }
 
     function testFuzz_balanceOfNFTAt_Expired(address pranker, uint256 amount, uint256 duration) public {
@@ -30,7 +30,7 @@ contract BalanceOfNFTAt is VotingEscrowTest {
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        assertEq(votingEscrow.balanceOfNFTAt(tokenId, block.timestamp + duration), 0, "Balance should be 0");
+        assertEq(votingEscrow.balanceOfNFTAt(tokenId, vm.getBlockTimestamp() + duration), 0, "Balance should be 0");
     }
 
     function testFuzz_balanceOfNFTAt_Invalid(uint256 tokenId, uint256 timestamp) public view {

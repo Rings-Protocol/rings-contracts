@@ -15,7 +15,7 @@ contract UserPointHistoryTs is VotingEscrowTest {
         uint256 idx = votingEscrow.user_point_epoch(tokenId);
 
         assertEq(
-            votingEscrow.user_point_history__ts(tokenId, idx), block.timestamp, "Value should be current timestamp"
+            votingEscrow.user_point_history__ts(tokenId, idx), vm.getBlockTimestamp(), "Value should be current timestamp"
         );
     }
 
@@ -28,9 +28,9 @@ contract UserPointHistoryTs is VotingEscrowTest {
         waitWeeks = uint8(bound(waitWeeks, 1, duration / (7 * 86_400)));
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
-        uint256 timestamp = block.timestamp;
+        uint256 timestamp = vm.getBlockTimestamp();
 
-        vm.warp(block.timestamp + uint256(waitWeeks) * 7 * 86_400);
+        vm.warp(vm.getBlockTimestamp() + uint256(waitWeeks) * 7 * 86_400);
         votingEscrow.checkpoint();
         uint256 idx = votingEscrow.user_point_epoch(tokenId);
 

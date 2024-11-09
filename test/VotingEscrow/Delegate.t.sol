@@ -23,7 +23,7 @@ contract Delegate is VotingEscrowTest {
 
         assertEq(votingEscrow.delegates(pranker), address(delegate), "Delegate is not delegate");
         assertEq(votingEscrow.numCheckpoints(delegate), 1, "Delegate has no checkpoints");
-        //assertEq(ts, block.timestamp, "Timestamp is not block.timestamp");
+        //assertEq(ts, vm.getBlockTimestamp(), "Timestamp is not vm.getBlockTimestamp()");
         // assertEq(tokens[0], tokenId, "Balance is not balanceOf");
         //assertEq(tokens.length, 1, "Tokens length is not 1");
     }
@@ -46,11 +46,11 @@ contract Delegate is VotingEscrowTest {
 
         assertEq(votingEscrow.delegates(pranker), delegate, "Delegate is not delegate");
         assertEq(votingEscrow.numCheckpoints(delegate), 1, "Delegate has one checkpoints");
-        //assertEq(checkpoint.timestamp, block.timestamp, "Timestamp is not block.timestamp");
+        //assertEq(checkpoint.timestamp, vm.getBlockTimestamp(), "Timestamp is not vm.getBlockTimestamp()");
         //assertEq(checkpoint.tokenIds[0], tokenId, "Balance is not balanceOf");
         //assertEq(checkpoint.tokenIds.length, 1, "Tokens length is not 1");
 
-        vm.warp(block.timestamp + wait);
+        vm.warp(vm.getBlockTimestamp() + wait);
 
         vm.prank(pranker);
         votingEscrow.delegate(pranker);
@@ -59,7 +59,7 @@ contract Delegate is VotingEscrowTest {
 
         assertEq(votingEscrow.delegates(pranker), pranker, "Pranker is not delegate");
         assertEq(votingEscrow.numCheckpoints(pranker), 3, "Pranker has 3 checkpoints");
-        //assertEq(prankerCheckpoint.timestamp, block.timestamp + wait, "Timestamp is not block.timestamp");
+        //assertEq(prankerCheckpoint.timestamp, vm.getBlockTimestamp() + wait, "Timestamp is not vm.getBlockTimestamp()");
         //assertEq(prankerCheckpoint.tokenIds[0], tokenId, "Balance is not balanceOf");
         //assertEq(prankerCheckpoint.tokenIds.length, 1, "Tokens length is not 1");
     }

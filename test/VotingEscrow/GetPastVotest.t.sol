@@ -13,7 +13,7 @@ contract GetPastVotes is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400 + 1, MAXTIME);
         wait = bound(wait, 1, duration - 7 days);
 
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
         uint256 lockedEnd = votingEscrow.locked__end(tokenId);
@@ -21,7 +21,7 @@ contract GetPastVotes is VotingEscrowTest {
         uint256 bias = slope * (lockedEnd - startTimestamp);
         uint256 estimated = bias - (slope * wait);
         assertEq(
-            votingEscrow.getPastVotes(pranker, block.timestamp + wait), estimated, "Vote power should be estimated"
+            votingEscrow.getPastVotes(pranker, vm.getBlockTimestamp() + wait), estimated, "Vote power should be estimated"
         );
     }
 
@@ -37,7 +37,7 @@ contract GetPastVotes is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400 + 1, MAXTIME);
         wait = bound(wait, 1, duration - 7 days);
         uint256 nbTokens = bound(tokens, 1, 25);
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
         uint256 tokenId;
 
         for (uint8 i = 0; i < nbTokens; i++) {
@@ -49,7 +49,7 @@ contract GetPastVotes is VotingEscrowTest {
         uint256 bias = slope * (lockedEnd - startTimestamp);
         uint256 estimated = bias - (slope * wait);
         assertEq(
-            votingEscrow.getPastVotes(pranker, block.timestamp + wait),
+            votingEscrow.getPastVotes(pranker, vm.getBlockTimestamp() + wait),
             estimated * nbTokens,
             "Vote power should be estimated times nbTokens"
         );
@@ -62,7 +62,7 @@ contract GetPastVotes is VotingEscrowTest {
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        assertEq(votingEscrow.getPastVotes(pranker, block.timestamp + duration), 0, "Vote power should be 0");
+        assertEq(votingEscrow.getPastVotes(pranker, vm.getBlockTimestamp() + duration), 0, "Vote power should be 0");
     }
 
     function testFuzz_getPastVotes_Invalid(address pranker, uint256 timestamp) public view {

@@ -13,11 +13,11 @@ contract BalanceOfAtNFT is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400 + 1, MAXTIME);
         wait = bound(wait, 1, duration - 7 days);
 
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
         vm.roll(block.number + (wait / 15)); // 15 seconds per block, can be changed without incidence on the test
-        vm.warp(block.timestamp + wait);
+        vm.warp(vm.getBlockTimestamp() + wait);
 
         uint256 lockedEnd = votingEscrow.locked__end(tokenId);
         uint256 slope = amount / MAXTIME;

@@ -16,11 +16,11 @@ contract Constructor is VotingEscrowTest {
     function test_constructor_Normal() public view {
         assertEq(votingEscrow.token(), address(scUSD), "Asset is not scUSD");
         assertEq(votingEscrow.artProxy(), address(veArtProxy), "ArtProxy is not VeArtProxy");
-        assertEq(votingEscrow.voter(), owner, "Voter is not owner");
+        assertEq(votingEscrow.voter(), address(0), "Voter is set");
         assertEq(votingEscrow.team(), owner, "Team is not owner");
 
         (,, uint256 ts, uint256 blk) = votingEscrow.point_history(0);
         assertEq(blk, block.number, "Block number is not current block number");
-        assertEq(ts, block.timestamp, "Timestamp is not current timestamp");
+        assertEq(ts, vm.getBlockTimestamp(), "Timestamp is not current timestamp");
     }
 }

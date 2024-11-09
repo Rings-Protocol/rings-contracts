@@ -77,7 +77,7 @@ contract DepositBudget is VoterTest {
 
         voter.depositBudget(amount);
 
-        vm.warp(block.timestamp + 7 days);
+        vm.warp(vm.getBlockTimestamp() + 7 days);
 
         vm.expectEmit(true, true, true, true);
         emit Voter.BudgetDeposited(address(this), depositPeriod2, amount2);

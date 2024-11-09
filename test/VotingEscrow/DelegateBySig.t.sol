@@ -30,7 +30,7 @@ contract DelegateBySig is VotingEscrowTest {
         vm.assume(pranker != address(0));
         vm.assume(delegate != address(0));
         vm.assume(pranker != delegate);
-        vm.assume(expiry > block.timestamp);
+        vm.assume(expiry > vm.getBlockTimestamp());
         Vm.Wallet memory delegator = vm.createWallet("testFuzz_delegatebysig_Normal");
         uint256 nonce = 0;
         (uint8 v, bytes32 r, bytes32 s) = createDelegationSignature(delegator, delegate, nonce, expiry);
@@ -40,14 +40,14 @@ contract DelegateBySig is VotingEscrowTest {
 
         assertEq(votingEscrow.delegates(delegator.addr), address(delegate), "Delegate is not delegate");
         assertEq(votingEscrow.numCheckpoints(delegate), 1, "Delegate has no checkpoints");
-        //assertEq(ts, block.timestamp, "Timestamp is not block.timestamp");
+        //assertEq(ts, vm.getBlockTimestamp(), "Timestamp is not vm.getBlockTimestamp()");
         // assertEq(tokens[0], tokenId, "Balance is not balanceOf");
         //assertEq(tokens.length, 1, "Tokens length is not 1");
     }
 
     function testFuzz_delegatebysig_senderIsDelegate(address pranker, uint256 expiry) public {
         vm.assume(pranker != address(0));
-        vm.assume(expiry > block.timestamp);
+        vm.assume(expiry > vm.getBlockTimestamp());
         Vm.Wallet memory delegator = vm.createWallet("testFuzz_delegatebysig_senderIsDelegate");
         uint256 nonce = 0;
         (uint8 v, bytes32 r, bytes32 s) = createDelegationSignature(delegator, pranker, nonce, expiry);
@@ -59,7 +59,7 @@ contract DelegateBySig is VotingEscrowTest {
 
     function testFuzz_delegatebysig_zeroDelegate(address pranker, uint256 expiry) public {
         vm.assume(pranker != address(0));
-        vm.assume(expiry > block.timestamp);
+        vm.assume(expiry > vm.getBlockTimestamp());
         Vm.Wallet memory delegator = vm.createWallet("testFuzz_delegatebysig_zeroDelegate");
         uint256 nonce = 0;
         (uint8 v, bytes32 r, bytes32 s) = createDelegationSignature(delegator, zero, nonce, expiry);
@@ -75,7 +75,7 @@ contract DelegateBySig is VotingEscrowTest {
         vm.assume(pranker != address(0));
         vm.assume(delegate != address(0));
         vm.assume(pranker != delegate);
-        vm.assume(expiry > block.timestamp);
+        vm.assume(expiry > vm.getBlockTimestamp());
         vm.assume(nonce > 0);
         Vm.Wallet memory delegator = vm.createWallet("testFuzz_delegatebysig_invalidNonce");
         (uint8 v, bytes32 r, bytes32 s) = createDelegationSignature(delegator, delegate, nonce, expiry);
@@ -113,7 +113,7 @@ contract DelegateBySig is VotingEscrowTest {
         vm.assume(pranker != address(0));
         vm.assume(delegate != address(0));
         vm.assume(pranker != delegate);
-        vm.assume(expiry > block.timestamp);
+        vm.assume(expiry > vm.getBlockTimestamp());
         uint256 nonce = 0;
 
         bytes32 domainSeparator = keccak256(

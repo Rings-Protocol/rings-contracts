@@ -5,7 +5,7 @@ import "./VoterTest.t.sol";
 
 contract CuurentPeriod is VoterTest {
     function test_return_correct_period() public {
-        uint256 startTs = block.timestamp;
+        uint256 startTs = vm.getBlockTimestamp();
 
         assertEq(voter.currentPeriod(), (startTs / WEEK) * WEEK, "1st check failed");
 

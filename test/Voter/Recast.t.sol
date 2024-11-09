@@ -70,7 +70,7 @@ contract Recast is VoterTest {
         vm.prank(alice);
         voter.vote(3, gauges3, weights3);
 
-        vm.warp(block.timestamp + 5 days); // only 5 days here since taken start timestamp is at the end of the period
+        vm.warp(vm.getBlockTimestamp() + 5 days); // only 5 days here since taken start timestamp is at the end of the period
     }
 
     function test_recast_votes_correctly() public {
@@ -99,14 +99,14 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
-        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
-        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
+        emit Voter.Voted(address(alice), 1, gauge1, vm.getBlockTimestamp(), 5000, gaugeVotes1);
+        emit Voter.Voted(address(alice), 1, gauge2, vm.getBlockTimestamp(), 2000, gaugeVotes2);
+        emit Voter.Voted(address(alice), 1, gauge3, vm.getBlockTimestamp(), 3000, gaugeVotes3);
 
         vm.prank(alice);
         voter.recast(1);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
 
@@ -159,13 +159,13 @@ contract Recast is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voter.Voted(address(alice), 2, gauge2, block.timestamp, weights2[0], gaugeVotes2);
-        emit Voter.Voted(address(alice), 2, gauge4, block.timestamp, weights2[1], gaugeVotes4);
+        emit Voter.Voted(address(alice), 2, gauge2, vm.getBlockTimestamp(), weights2[0], gaugeVotes2);
+        emit Voter.Voted(address(alice), 2, gauge4, vm.getBlockTimestamp(), weights2[1], gaugeVotes4);
 
         vm.prank(alice);
         voter.recast(2);
 
-        assertEq(voter.lastVoted(2), block.timestamp);
+        assertEq(voter.lastVoted(2), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(2, nextPeriod), true);
 
@@ -198,7 +198,7 @@ contract Recast is VoterTest {
         vm.prank(alice);
         voter.vote(1, gauges2, weights2);
 
-        vm.warp(block.timestamp + 6 hours);
+        vm.warp(vm.getBlockTimestamp() + 6 hours);
 
         votingPower = ve.balanceOfNFT(1);
 
@@ -218,14 +218,14 @@ contract Recast is VoterTest {
         vm.expectEmit(true, true, true, true);
         emit Voter.VoteReseted(address(alice), 1, gauge2);
         emit Voter.VoteReseted(address(alice), 1, gauge4);
-        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, weights[0], gaugeVotes1);
-        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, weights[1], gaugeVotes2);
-        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, weights[2], gaugeVotes3);
+        emit Voter.Voted(address(alice), 1, gauge1, vm.getBlockTimestamp(), weights[0], gaugeVotes1);
+        emit Voter.Voted(address(alice), 1, gauge2, vm.getBlockTimestamp(), weights[1], gaugeVotes2);
+        emit Voter.Voted(address(alice), 1, gauge3, vm.getBlockTimestamp(), weights[2], gaugeVotes3);
 
         vm.prank(alice);
         voter.recast(1);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
 
@@ -324,36 +324,36 @@ contract Recast is VoterTest {
 
         vm.expectEmit(true, true, true, true);
         emit Voter.Voted(
-            address(alice), 1, gauge1, block.timestamp, weights[0], (votingPower1 * weights[0]) / MAX_WEIGHT
+            address(alice), 1, gauge1, vm.getBlockTimestamp(), weights[0], (votingPower1 * weights[0]) / MAX_WEIGHT
         );
         emit Voter.Voted(
-            address(alice), 1, gauge2, block.timestamp, weights[1], (votingPower1 * weights[1]) / MAX_WEIGHT
+            address(alice), 1, gauge2, vm.getBlockTimestamp(), weights[1], (votingPower1 * weights[1]) / MAX_WEIGHT
         );
         emit Voter.Voted(
-            address(alice), 1, gauge3, block.timestamp, weights[2], (votingPower1 * weights[2]) / MAX_WEIGHT
+            address(alice), 1, gauge3, vm.getBlockTimestamp(), weights[2], (votingPower1 * weights[2]) / MAX_WEIGHT
         );
         emit Voter.Voted(
-            address(alice), 2, gauge2, block.timestamp, weights2[0], (votingPower2 * weights2[0]) / MAX_WEIGHT
+            address(alice), 2, gauge2, vm.getBlockTimestamp(), weights2[0], (votingPower2 * weights2[0]) / MAX_WEIGHT
         );
         emit Voter.Voted(
-            address(alice), 2, gauge4, block.timestamp, weights2[1], (votingPower2 * weights2[1]) / MAX_WEIGHT
+            address(alice), 2, gauge4, vm.getBlockTimestamp(), weights2[1], (votingPower2 * weights2[1]) / MAX_WEIGHT
         );
         emit Voter.Voted(
-            address(alice), 3, gauge3, block.timestamp, weights3[0], (votingPower3 * weights3[0]) / MAX_WEIGHT
+            address(alice), 3, gauge3, vm.getBlockTimestamp(), weights3[0], (votingPower3 * weights3[0]) / MAX_WEIGHT
         );
         emit Voter.Voted(
-            address(alice), 3, gauge4, block.timestamp, weights3[1], (votingPower3 * weights3[1]) / MAX_WEIGHT
+            address(alice), 3, gauge4, vm.getBlockTimestamp(), weights3[1], (votingPower3 * weights3[1]) / MAX_WEIGHT
         );
         emit Voter.Voted(
-            address(alice), 3, gauge1, block.timestamp, weights3[2], (votingPower3 * weights3[2]) / MAX_WEIGHT
+            address(alice), 3, gauge1, vm.getBlockTimestamp(), weights3[2], (votingPower3 * weights3[2]) / MAX_WEIGHT
         );
 
         vm.prank(alice);
         voter.recastMultiple(tokenIds);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
-        assertEq(voter.lastVoted(2), block.timestamp);
-        assertEq(voter.lastVoted(3), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
+        assertEq(voter.lastVoted(2), vm.getBlockTimestamp());
+        assertEq(voter.lastVoted(3), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
         assertEq(voter.voteCastedPeriod(2, nextPeriod), true);

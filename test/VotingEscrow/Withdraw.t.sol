@@ -13,10 +13,10 @@ contract Withdraw is VotingEscrowTest {
         amount = bound(amount, 1, 10e25);
         duration = bound(duration, 7 * 86_400, MAXTIME);
 
-        uint256 timestamp = block.timestamp;
+        uint256 timestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        vm.warp(block.timestamp + duration + 1);
+        vm.warp(vm.getBlockTimestamp() + duration + 1);
 
         vm.prank(pranker);
         votingEscrow.withdraw(tokenId);
@@ -42,7 +42,7 @@ contract Withdraw is VotingEscrowTest {
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        vm.warp(block.timestamp + waitDuration);
+        vm.warp(vm.getBlockTimestamp() + waitDuration);
 
         vm.expectRevert();
         vm.prank(pranker);
@@ -54,10 +54,10 @@ contract Withdraw is VotingEscrowTest {
         amount = bound(amount, 1, 10e25);
         duration = bound(duration, 7 * 86_400, MAXTIME);
 
-        uint256 timestamp = block.timestamp;
+        uint256 timestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(alice, amount, duration);
 
-        vm.warp(block.timestamp + duration + 1);
+        vm.warp(vm.getBlockTimestamp() + duration + 1);
 
         vm.expectRevert();
         vm.prank(pranker);

@@ -19,7 +19,7 @@ contract IncreaseUnlockTime is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400, MAXTIME - 7 days);
         secondDuration = bound(secondDuration, 7 days, MAXTIME - duration);
 
-        uint256 timestamp = block.timestamp;
+        uint256 timestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
         vm.prank(pranker);
@@ -31,7 +31,7 @@ contract IncreaseUnlockTime is VotingEscrowTest {
 
     function testFuzz_increaseUnlockTime_InvalidToken(uint256 tokenId) public {
         vm.expectRevert();
-        votingEscrow.increase_unlock_time(tokenId, block.timestamp + 1);
+        votingEscrow.increase_unlock_time(tokenId, vm.getBlockTimestamp() + 1);
     }
 
     function testFuzz_increaseUnlockTime_InvalidDuration(address pranker, uint256 amount, uint256 duration) public {
@@ -56,10 +56,10 @@ contract IncreaseUnlockTime is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400, MAXTIME - 7 days);
         secondDuration = bound(secondDuration, 7 days, MAXTIME - duration);
 
-        uint256 timestamp = block.timestamp;
+        uint256 timestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        vm.warp(block.timestamp + duration + 1);
+        vm.warp(vm.getBlockTimestamp() + duration + 1);
 
         vm.prank(pranker);
         vm.expectRevert();

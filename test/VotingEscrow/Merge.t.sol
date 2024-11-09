@@ -19,7 +19,7 @@ contract Merge is VotingEscrowTest {
         votingEscrow.merge(from, to);
         (int128 balance, uint256 end) = votingEscrow.locked(to);
         assertEq(uint256(uint128(balance)), amount * 2, "Balance should be doubled");
-        assertEq(end, (block.timestamp + duration) / WEEK * WEEK, "End should be the same");
+        assertEq(end, (vm.getBlockTimestamp() + duration) / WEEK * WEEK, "End should be the same");
     }
 
     function testFuzz_merge_Longer(address pranker, uint256 amount, uint256 duration, uint256 secondDuration) public {
@@ -35,7 +35,7 @@ contract Merge is VotingEscrowTest {
         votingEscrow.merge(from, to);
         (int128 balance, uint256 end) = votingEscrow.locked(to);
         assertEq(uint256(uint128(balance)), amount * 2, "Balance should be doubled");
-        assertEq(end, (block.timestamp + duration + secondDuration) / WEEK * WEEK, "End should be the the longest");
+        assertEq(end, (vm.getBlockTimestamp() + duration + secondDuration) / WEEK * WEEK, "End should be the the longest");
     }
 
     function testFuzz_merge_Shorter(address pranker, uint256 amount, uint256 duration, uint256 secondDuration) public {
@@ -51,7 +51,7 @@ contract Merge is VotingEscrowTest {
         votingEscrow.merge(from, to);
         (int128 balance, uint256 end) = votingEscrow.locked(to);
         assertEq(uint256(uint128(balance)), amount * 2, "Balance should be doubled");
-        assertEq(end, (block.timestamp + duration + secondDuration) / WEEK * WEEK, "End should be the the longest");
+        assertEq(end, (vm.getBlockTimestamp() + duration + secondDuration) / WEEK * WEEK, "End should be the the longest");
     }
 
     function testFuzz_merge_FromNotAllowed(address pranker, uint256 amount, uint256 duration) public {

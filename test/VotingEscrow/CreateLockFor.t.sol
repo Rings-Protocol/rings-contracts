@@ -20,7 +20,7 @@ contract CreateLockFor is VotingEscrowTest {
 
         (int128 balance, uint256 end) = votingEscrow.locked(tokenId);
         assertEq(balance, SafeCastLib.toInt128(amount), "Value should be amount");
-        assertEq(end, (block.timestamp + duration) / WEEK * WEEK, "Value should be duration from now rounded to week");
+        assertEq(end, (vm.getBlockTimestamp() + duration) / WEEK * WEEK, "Value should be duration from now rounded to week");
         assertEq(votingEscrow.ownerOf(tokenId), recipient, "Owner should be pranker");
     }
 

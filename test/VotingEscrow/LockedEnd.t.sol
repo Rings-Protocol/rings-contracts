@@ -16,7 +16,7 @@ contract LockedEnd is VotingEscrowTest {
 
         assertEq(
             votingEscrow.locked__end(tokenId),
-            (block.timestamp + duration) / WEEK * WEEK,
+            (vm.getBlockTimestamp() + duration) / WEEK * WEEK,
             "Value should be duration from now rounded to week"
         );
     }
@@ -28,9 +28,9 @@ contract LockedEnd is VotingEscrowTest {
         waitWeeks = uint8(bound(waitWeeks, 1, duration / (7 * 86_400)));
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
-        uint256 timestamp = block.timestamp;
+        uint256 timestamp = vm.getBlockTimestamp();
 
-        vm.warp(block.timestamp + uint256(waitWeeks) * 7 * 86_400);
+        vm.warp(vm.getBlockTimestamp() + uint256(waitWeeks) * 7 * 86_400);
 
         assertEq(
             votingEscrow.locked__end(tokenId),
@@ -46,7 +46,7 @@ contract LockedEnd is VotingEscrowTest {
         weeksExtend = uint8(bound(weeksExtend, 1, (MAXTIME - duration) / (7 * 86_400))); // 1 week to max duration
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
-        uint256 timestamp = block.timestamp;
+        uint256 timestamp = vm.getBlockTimestamp();
 
         uint256 end = (timestamp + duration + uint256(weeksExtend) * 7 * 86_400) / WEEK * WEEK;
 
