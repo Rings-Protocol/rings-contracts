@@ -24,7 +24,7 @@ contract ClaimGaugeRewards is VoterTest {
     function setUp() public virtual override {
         super.setUp();
 
-        startTs = block.timestamp;
+        startTs = vm.getBlockTimestamp();
 
         gauge1 = makeAddr("gauge1");
         gauge2 = makeAddr("gauge2");

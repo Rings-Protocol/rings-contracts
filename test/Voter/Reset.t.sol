@@ -73,7 +73,7 @@ contract Reset is VoterTest {
 
     function test_reset_votes_correctly() public {
         uint256 votingPower = ve.balanceOfNFT(1);
-        vm.warp(block.timestamp + 6 hours);
+        vm.warp(vm.getBlockTimestamp() + 6 hours);
 
         uint256 nextPeriod = voter.currentPeriod() + WEEK;
 
@@ -95,7 +95,7 @@ contract Reset is VoterTest {
         vm.prank(alice);
         voter.reset(1);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), false);
 
@@ -136,7 +136,7 @@ contract Reset is VoterTest {
         vm.prank(bob);
         voter.reset(4);
 
-        assertEq(voter.lastVoted(4), block.timestamp);
+        assertEq(voter.lastVoted(4), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(4, nextPeriod), false);
 
@@ -155,7 +155,7 @@ contract Reset is VoterTest {
         ve.approveVoting(address(alice), 2);
 
         uint256 votingPower = ve.balanceOfNFT(2);
-        vm.warp(block.timestamp + 6 hours);
+        vm.warp(vm.getBlockTimestamp() + 6 hours);
 
         uint256 nextPeriod = voter.currentPeriod() + WEEK;
 
@@ -174,7 +174,7 @@ contract Reset is VoterTest {
         vm.prank(alice);
         voter.reset(2);
 
-        assertEq(voter.lastVoted(2), block.timestamp);
+        assertEq(voter.lastVoted(2), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(2, nextPeriod), false);
 
@@ -206,7 +206,7 @@ contract Reset is VoterTest {
     }
 
     function test_fail_not_allowed_delegate() public {
-        vm.warp(block.timestamp + 6 hours);
+        vm.warp(vm.getBlockTimestamp() + 6 hours);
 
         vm.expectRevert(Voter.CannotVoteWithNft.selector);
 
@@ -226,7 +226,7 @@ contract Reset is VoterTest {
         uint256 votingPower = ve.balanceOfNFT(1);
         uint256 votingPower2 = ve.balanceOfNFT(2);
         uint256 votingPower3 = ve.balanceOfNFT(3);
-        vm.warp(block.timestamp + 6 hours);
+        vm.warp(vm.getBlockTimestamp() + 6 hours);
 
         uint256 nextPeriod = voter.currentPeriod() + WEEK;
 
@@ -256,9 +256,9 @@ contract Reset is VoterTest {
         vm.prank(alice);
         voter.resetMultiple(nfts);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
-        assertEq(voter.lastVoted(2), block.timestamp);
-        assertEq(voter.lastVoted(3), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
+        assertEq(voter.lastVoted(2), vm.getBlockTimestamp());
+        assertEq(voter.lastVoted(3), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), false);
         assertEq(voter.voteCastedPeriod(2, nextPeriod), false);

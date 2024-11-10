@@ -43,7 +43,7 @@ contract Getters is VoterTest {
         voter.addGauge(gauge4, "Mock Gauge 4");
         vm.stopPrank();
 
-        startTs = block.timestamp;
+        startTs = vm.getBlockTimestamp();
 
         vm.warp(startTs + 5 days);
 

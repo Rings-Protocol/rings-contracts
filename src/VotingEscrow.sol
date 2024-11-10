@@ -221,9 +221,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         bool voterIsApproved = idToVotingApprovals[_tokenId] == _voter;
         bool voterIsApprovedForAll = (ownerToVotingOperators[owner])[_voter];
         bool isApproved = idToApprovals[_tokenId] == _voter;
-        bool isApprovedForAll = (ownerToOperators[owner])[_voter];
+        bool _isApprovedForAll = (ownerToOperators[owner])[_voter];
 
-        return voterIsOwner || voterIsApproved || voterIsApprovedForAll || isApproved || isApprovedForAll;
+        return voterIsOwner || voterIsApproved || voterIsApprovedForAll || isApproved || _isApprovedForAll;
     }
 
     function isVotingApprovedOrOwner(address _voter, uint256 _tokenId) external view returns (bool) {

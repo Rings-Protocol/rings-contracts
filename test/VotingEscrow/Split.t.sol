@@ -37,7 +37,7 @@ contract Split is VotingEscrowTest {
             uint256 tokenId = from + i + 1;
             (int128 balance, uint256 end) = votingEscrow.locked(tokenId);
             assertEq(uint256(uint128(balance)), amount * newWeights[i] / amountsSum, "Balance should be the same");
-            assertEq(end, (block.timestamp + duration) / WEEK * WEEK, "End should be the same");
+            assertEq(end, (vm.getBlockTimestamp() + duration) / WEEK * WEEK, "End should be the same");
         }
     }
 

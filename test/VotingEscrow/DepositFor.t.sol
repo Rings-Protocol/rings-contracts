@@ -52,7 +52,7 @@ contract DepositFor is VotingEscrowTest {
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        vm.warp(block.timestamp + duration + 1);
+        vm.warp(vm.getBlockTimestamp() + duration + 1);
 
         dealApproveAsset(pranker, secondAmount);
         vm.prank(pranker);

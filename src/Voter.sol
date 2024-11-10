@@ -60,7 +60,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     /// @notice Emitted when a gauge is revived
     event GaugeRevived(address indexed gauge);
     /// @notice Emitted when a vote is casted
-    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 weight, uint256 votes);
+    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes);
     /// @notice Emitted when a vote is reseted
     event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
     /// @notice Emitted when a budget is deposited
@@ -165,6 +165,22 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      */
     function gaugesCount() external view returns (uint256) {
         return gauges.length;
+    }
+
+    /**
+     * @notice Returns true if the gauge is listed
+     * @return bool
+     */
+    function isGauge(address gauge) external view returns (bool) {
+        return gaugeStatus[gauge].isGauge;
+    }
+
+    /**
+     * @notice Returns true if the gauge is alive
+     * @return bool
+     */
+    function isAlive(address gauge) external view returns (bool) {
+        return gaugeStatus[gauge].isAlive;
     }
 
     /**
@@ -578,7 +594,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
             votesPerPeriod[nextPeriod][gauge] += gaugeVotes;
             votes[tokenId][nextPeriod][gauge] = Vote(weights[i], gaugeVotes);
 
-            emit Voted(voter, tokenId, gauge, weights[i], gaugeVotes);
+            emit Voted(voter, tokenId, gauge, block.timestamp, weights[i], gaugeVotes);
         }
 
         if (totalUsedWeights > MAX_WEIGHT) revert VoteWeightOverflow();

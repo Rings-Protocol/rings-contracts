@@ -21,14 +21,14 @@ contract TotalSupplyAt is VotingEscrowTest {
         wait = bound(wait, 1, duration - 7 days);
         uint256 tokenId;
 
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
 
         for (uint8 i = 0; i < nbToken; i++) {
             tokenId = createLockPranked(pranker, amount, duration);
         }
 
         vm.roll(block.number + (wait / 15)); // 15 seconds per block, can be changed without incidence on the test
-        vm.warp(block.timestamp + wait);
+        vm.warp(vm.getBlockTimestamp() + wait);
 
         uint256 lockedEnd = votingEscrow.locked__end(tokenId);
         uint256 slope = amount / MAXTIME;
@@ -46,7 +46,7 @@ contract TotalSupplyAt is VotingEscrowTest {
         createLockPranked(pranker, amount, duration);
 
         vm.roll(block.number + (duration / 15)); // 15 seconds per block, can be changed without incidence on the test
-        vm.warp(block.timestamp + duration);
+        vm.warp(vm.getBlockTimestamp() + duration);
 
         assertEq(votingEscrow.totalSupplyAt(block.number), 0, "Supply should be 0");
     }

@@ -8,7 +8,7 @@ contract GetPastVotesIndex is VotingEscrowTest {
     uint256 internal constant WEEK = 7 * 86_400;
 
     function test_getPastVotesIndex_NoCheckpoint(address pranker) public {
-        assertEq(votingEscrow.getPastVotesIndex(pranker, block.timestamp), 0, "Index should be 0");
+        assertEq(votingEscrow.getPastVotesIndex(pranker, vm.getBlockTimestamp()), 0, "Index should be 0");
     }
 
     function test_getPastVotesIndex_BeforeCheckpoint(address pranker, uint256 amount, uint256 duration, uint256 wait)
@@ -19,9 +19,9 @@ contract GetPastVotesIndex is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400 + 1, MAXTIME);
         wait = bound(wait, 7 * 86_400, MAXTIME);
 
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
 
-        vm.warp(block.timestamp + wait);
+        vm.warp(vm.getBlockTimestamp() + wait);
 
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
@@ -36,11 +36,11 @@ contract GetPastVotesIndex is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400 + 1, MAXTIME);
         wait = bound(wait, 1, duration - 7 days);
 
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        vm.warp(block.timestamp + wait);
-        assertEq(votingEscrow.getPastVotesIndex(pranker, block.timestamp), 0, "Index should be 0");
+        vm.warp(vm.getBlockTimestamp() + wait);
+        assertEq(votingEscrow.getPastVotesIndex(pranker, vm.getBlockTimestamp()), 0, "Index should be 0");
     }
 
     function test_getpastvotesindex_IntermediateCheckpoint(
@@ -54,10 +54,10 @@ contract GetPastVotesIndex is VotingEscrowTest {
         duration = bound(duration, 7 * 86_400 + 2, MAXTIME);
         wait = bound(wait, 1, (duration - 7 days) / 2);
 
-        uint256 startTimestamp = block.timestamp;
+        uint256 startTimestamp = vm.getBlockTimestamp();
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
-        vm.warp(block.timestamp + wait * 2);
+        vm.warp(vm.getBlockTimestamp() + wait * 2);
 
         vm.prank(pranker);
         votingEscrow.delegate(address(bob));

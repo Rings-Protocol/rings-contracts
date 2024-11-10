@@ -69,14 +69,14 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
-        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
-        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
+        emit Voter.Voted(address(alice), 1, gauge1, vm.getBlockTimestamp(), 5000, gaugeVotes1);
+        emit Voter.Voted(address(alice), 1, gauge2, vm.getBlockTimestamp(), 2000, gaugeVotes2);
+        emit Voter.Voted(address(alice), 1, gauge3, vm.getBlockTimestamp(), 3000, gaugeVotes3);
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
 
@@ -198,13 +198,13 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, weights[0], gaugeVotes1);
-        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, weights[1], gaugeVotes2);
+        emit Voter.Voted(address(alice), 1, gauge1, vm.getBlockTimestamp(), weights[0], gaugeVotes1);
+        emit Voter.Voted(address(alice), 1, gauge2, vm.getBlockTimestamp(), weights[1], gaugeVotes2);
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
 
@@ -256,14 +256,14 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voter.Voted(address(bob), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
-        emit Voter.Voted(address(bob), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
-        emit Voter.Voted(address(bob), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
+        emit Voter.Voted(address(bob), 1, gauge1, vm.getBlockTimestamp(), 5000, gaugeVotes1);
+        emit Voter.Voted(address(bob), 1, gauge2, vm.getBlockTimestamp(), 2000, gaugeVotes2);
+        emit Voter.Voted(address(bob), 1, gauge3, vm.getBlockTimestamp(), 3000, gaugeVotes3);
 
         vm.prank(bob);
         voter.vote(1, gauges, weights);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
 
@@ -318,7 +318,7 @@ contract Vote is VoterTest {
         vm.prank(alice);
         voter.vote(1, oldGauges, oldWeights);
 
-        vm.warp(block.timestamp + 6 hours);
+        vm.warp(vm.getBlockTimestamp() + 6 hours);
         votingPower = ve.balanceOfNFT(1);
 
         uint256 gaugeVotes1 = (votingPower * weights[0]) / MAX_WEIGHT;
@@ -337,14 +337,14 @@ contract Vote is VoterTest {
         vm.expectEmit(true, true, true, true);
         emit Voter.VoteReseted(address(alice), 1, gauge2);
         emit Voter.VoteReseted(address(alice), 1, gauge4);
-        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, 5000, gaugeVotes1);
-        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, 2000, gaugeVotes2);
-        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, 3000, gaugeVotes3);
+        emit Voter.Voted(address(alice), 1, gauge1, vm.getBlockTimestamp(), 5000, gaugeVotes1);
+        emit Voter.Voted(address(alice), 1, gauge2, vm.getBlockTimestamp(), 2000, gaugeVotes2);
+        emit Voter.Voted(address(alice), 1, gauge3, vm.getBlockTimestamp(), 3000, gaugeVotes3);
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
 
@@ -470,7 +470,7 @@ contract Vote is VoterTest {
         weights[1] = 2000;
         weights[2] = 3000;
 
-        vm.warp(block.timestamp + MAXTIME);
+        vm.warp(vm.getBlockTimestamp() + MAXTIME);
         vm.expectRevert(Voter.NoVotingPower.selector);
 
         vm.prank(alice);
@@ -560,22 +560,22 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voter.Voted(address(alice), 1, gauge1, block.timestamp, 5000, (votingPower1 * weights[0]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 1, gauge2, block.timestamp, 2000, (votingPower1 * weights[1]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 1, gauge3, block.timestamp, 3000, (votingPower1 * weights[2]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 2, gauge1, block.timestamp, 5000, (votingPower2 * weights[0]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 2, gauge2, block.timestamp, 2000, (votingPower2 * weights[1]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 2, gauge3, block.timestamp, 3000, (votingPower2 * weights[2]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 3, gauge1, block.timestamp, 5000, (votingPower3 * weights[0]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 3, gauge2, block.timestamp, 2000, (votingPower3 * weights[1]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 3, gauge3, block.timestamp, 3000, (votingPower3 * weights[2]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 1, gauge1, vm.getBlockTimestamp(), 5000, (votingPower1 * weights[0]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 1, gauge2, vm.getBlockTimestamp(), 2000, (votingPower1 * weights[1]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 1, gauge3, vm.getBlockTimestamp(), 3000, (votingPower1 * weights[2]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 2, gauge1, vm.getBlockTimestamp(), 5000, (votingPower2 * weights[0]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 2, gauge2, vm.getBlockTimestamp(), 2000, (votingPower2 * weights[1]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 2, gauge3, vm.getBlockTimestamp(), 3000, (votingPower2 * weights[2]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 3, gauge1, vm.getBlockTimestamp(), 5000, (votingPower3 * weights[0]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 3, gauge2, vm.getBlockTimestamp(), 2000, (votingPower3 * weights[1]) / MAX_WEIGHT);
+        emit Voter.Voted(address(alice), 3, gauge3, vm.getBlockTimestamp(), 3000, (votingPower3 * weights[2]) / MAX_WEIGHT);
 
         vm.prank(alice);
         voter.voteMultiple(tokenIds, gauges, weights);
 
-        assertEq(voter.lastVoted(1), block.timestamp);
-        assertEq(voter.lastVoted(2), block.timestamp);
-        assertEq(voter.lastVoted(3), block.timestamp);
+        assertEq(voter.lastVoted(1), vm.getBlockTimestamp());
+        assertEq(voter.lastVoted(2), vm.getBlockTimestamp());
+        assertEq(voter.lastVoted(3), vm.getBlockTimestamp());
 
         assertEq(voter.voteCastedPeriod(1, nextPeriod), true);
         assertEq(voter.voteCastedPeriod(2, nextPeriod), true);
