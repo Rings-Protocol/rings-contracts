@@ -18,7 +18,7 @@ import { IVotingEscrow } from "./interfaces/IVotingEscrow.sol";
 /// @author Modified from Nouns DAO
 /// (https://github.com/withtally/my-nft-dao-project/blob/main/contracts/ERC721Checkpointable.sol)
 /// @dev Vote weight decays linearly over time. Lock time cannot be more than `MAXTIME` (2 years).
-contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
+contract VotingEscrow is IERC721Metadata, IVotes {
     enum DepositType {
         DEPOSIT_FOR_TYPE,
         CREATE_LOCK_TYPE,
@@ -65,6 +65,23 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     event Supply(uint256 prevSupply, uint256 supply);
     event VotingApproval(address indexed owner, address indexed operator, uint256 indexed tokenId);
     event VotingApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
+    /*//////////////////////////////////////////////////////////////
+                                 ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+
+    error NotToken();
+    error AlreadyAttached();
+    error NotApprovedOrOwner();
+    error NoLock();
+    error LockExpired();
+    error LockInFuture();
+    error LockTooLong();
+    error TooManyDelegates();
+    error InvalidSignature();
+    error InvalidNonce();
+    error SignatureExpired();
 
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
@@ -150,7 +167,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @dev Returns current token URI metadata
     /// @param _tokenId Token ID to fetch URI for.
     function tokenURI(uint256 _tokenId) external view returns (string memory) {
-        require(idToOwner[_tokenId] != address(0), "Query for nonexistent token");
+        if (idToOwner[_tokenId] == address(0)) {
+            revert NotToken();
+        }
         LockedBalance memory _locked = locked[_tokenId];
         return IVeArtProxy(artProxy)._tokenURI(
             _tokenId, _balanceOfNFT(_tokenId, block.timestamp), _locked.end, uint256(int256(_locked.amount))
@@ -377,7 +396,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     ///      Throws if `_from` is not the current owner.
     ///      Throws if `_tokenId` is not a valid NFT.
     function _transferFrom(address _from, address _to, uint256 _tokenId, address _sender) internal {
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        if (attachments[_tokenId] != 0 || voted[_tokenId]) {
+            revert AlreadyAttached();
+        }
         // Check requirements
         require(_isApprovedOrOwner(_sender, _tokenId));
         // Clear approval. Throws if `_from` is not the current owner
@@ -578,7 +599,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     }
 
     function _burn(uint256 _tokenId) internal {
-        require(_isApprovedOrOwner(msg.sender, _tokenId), "caller is not owner nor approved");
+        if (!_isApprovedOrOwner(msg.sender, _tokenId)) {
+            revert NotApprovedOrOwner();
+        }
 
         address owner = ownerOf(_tokenId);
 
@@ -834,8 +857,12 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         LockedBalance memory _locked = locked[_tokenId];
 
         require(_value > 0); // dev: need non-zero value
-        require(_locked.amount > 0, "No existing lock found");
-        require(_locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
+        if (_locked.amount == 0) {
+            revert NoLock();
+        }
+        if (_locked.end <= block.timestamp) {
+            revert LockExpired();
+        }
         _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
     }
 
@@ -847,8 +874,12 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         uint256 unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
         require(_value > 0); // dev: need non-zero value
-        require(unlock_time > block.timestamp, "Can only lock until time in the future");
-        require(unlock_time <= block.timestamp + MAXTIME, "Voting lock can be 2 years max");
+        if (unlock_time <= block.timestamp) {
+            revert LockInFuture();
+        }
+        if (unlock_time > block.timestamp + MAXTIME) {
+            revert LockTooLong();
+        }
 
         ++tokenId;
         uint256 _tokenId = tokenId;
@@ -885,8 +916,12 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         LockedBalance memory _locked = locked[_tokenId];
 
         assert(_value > 0); // dev: need non-zero value
-        require(_locked.amount > 0, "No existing lock found");
-        require(_locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
+        if (_locked.amount == 0) {
+            revert NoLock();
+        }
+        if (_locked.end <= block.timestamp) {
+            revert LockExpired();
+        }
 
         _deposit_for(_tokenId, _value, 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
     }
@@ -899,10 +934,18 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         LockedBalance memory _locked = locked[_tokenId];
         uint256 unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
-        require(_locked.end > block.timestamp, "Lock expired");
-        require(_locked.amount > 0, "Nothing is locked");
-        require(unlock_time > _locked.end, "Can only increase lock duration");
-        require(unlock_time <= block.timestamp + MAXTIME, "Voting lock can be 2 years max");
+        if (_locked.amount == 0) {
+            revert NoLock();
+        }
+        if (_locked.end <= block.timestamp) {
+            revert LockExpired();
+        }
+        if (unlock_time <= block.timestamp) {
+            revert LockInFuture();
+        }
+        if (unlock_time > block.timestamp + MAXTIME) {
+            revert LockTooLong();
+        }
 
         _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
     }
@@ -911,10 +954,14 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     /// @dev Only possible if the lock has expired
     function withdraw(uint256 _tokenId) external nonreentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        if (attachments[_tokenId] != 0 || voted[_tokenId]) {
+            revert AlreadyAttached();
+        }
 
         LockedBalance memory _locked = locked[_tokenId];
-        require(block.timestamp >= _locked.end, "The lock didn't expire");
+        if (block.timestamp < _locked.end) {
+            revert LockExpired();
+        }
         uint256 value = uint256(int256(_locked.amount));
 
         locked[_tokenId] = LockedBalance(0, 0);
@@ -1151,7 +1198,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
     }
 
     function merge(uint256 _from, uint256 _to) external {
-        require(attachments[_from] == 0 && !voted[_from], "attached");
+        if (attachments[_from] != 0 || voted[_from]) {
+            revert AlreadyAttached();
+        }
         require(_from != _to);
         require(_isApprovedOrOwner(msg.sender, _from));
         require(_isApprovedOrOwner(msg.sender, _to));
@@ -1174,7 +1223,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
      */
     function split(uint256[] memory amounts, uint256 _tokenId) external {
         // check permission and vote
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        if (attachments[_tokenId] != 0 || voted[_tokenId]) {
+            revert AlreadyAttached();
+        }
         require(_isApprovedOrOwner(msg.sender, _tokenId));
 
         // save old data and totalWeight
@@ -1201,8 +1252,12 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
 
         // save end
         uint256 unlock_time = end;
-        require(unlock_time > block.timestamp, "Can only lock until time in the future");
-        require(unlock_time <= block.timestamp + MAXTIME, "Voting lock can be 2 years max");
+        if (unlock_time <= block.timestamp) {
+            revert LockInFuture();
+        }
+        if (unlock_time > block.timestamp + MAXTIME) {
+            revert LockTooLong();
+        }
 
         // mint
         uint256 _value = 0;
@@ -1350,7 +1405,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                 uint32 nextDstRepNum = _findWhatCheckpointToWrite(dstRep);
                 uint256[] storage dstRepNew = checkpoints[dstRep][nextDstRepNum].tokenIds;
                 // All the same plus _tokenId
-                require(dstRepOld.length + 1 <= MAX_DELEGATES, "dstRep would have too many tokenIds");
+                if (dstRepOld.length + 1 > MAX_DELEGATES) {
+                    revert TooManyDelegates();
+                }
                 uint256 length = dstRepOld.length;
                 for (uint256 i = 0; i < length; ++i) {
                     uint256 tId = dstRepOld[i];
@@ -1402,7 +1459,9 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
                 uint32 nextDstRepNum = _findWhatCheckpointToWrite(dstRep);
                 uint256[] storage dstRepNew = checkpoints[dstRep][nextDstRepNum].tokenIds;
                 uint256 ownerTokenCount = ownerToNFTokenCount[owner];
-                require(dstRepOld.length + ownerTokenCount <= MAX_DELEGATES, "dstRep would have too many tokenIds");
+                if (dstRepOld.length + ownerTokenCount > MAX_DELEGATES) {
+                    revert TooManyDelegates();
+                }
                 // All the same
                 uint256 length = dstRepOld.length;
                 for (uint256 i = 0; i < length; ++i) {
@@ -1450,9 +1509,15 @@ contract VotingEscrow is IERC721, IERC721Metadata, IVotes {
         bytes32 structHash = keccak256(abi.encode(DELEGATION_TYPEHASH, delegatee, nonce, expiry));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
-        require(signatory != address(0), "VotingEscrow::delegateBySig: invalid signature");
-        require(nonce == nonces[signatory]++, "VotingEscrow::delegateBySig: invalid nonce");
-        require(block.timestamp <= expiry, "VotingEscrow::delegateBySig: signature expired");
+        if (signatory == address(0)) {
+            revert InvalidSignature();
+        }
+        if (nonce != nonces[signatory]++) {
+            revert InvalidNonce();
+        }
+        if (block.timestamp > expiry) {
+            revert SignatureExpired();
+        }
         return _delegate(signatory, delegatee);
     }
 }
