@@ -5,7 +5,7 @@ import "./VotingEscrowTest.t.sol";
 import "solady/utils/SafeCastLib.sol";
 
 contract GetLastUserSlope is VotingEscrowTest {
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
 
     function testFuzz_getLastUserSlope_LockStart(address pranker, uint256 amount, uint256 duration) public {
         vm.assume(pranker != address(0));

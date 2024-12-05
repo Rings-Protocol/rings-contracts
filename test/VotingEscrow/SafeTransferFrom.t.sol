@@ -5,7 +5,7 @@ import "./VotingEscrowTest.t.sol";
 import "../mocks/InvalidReceiver.sol";
 
 contract SafeTransferFrom is VotingEscrowTest {
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
 
     function testFuzz_safeTransferFrom_owner(uint256 amount, uint256 duration) public {
         amount = bound(amount, 1, 10e25);

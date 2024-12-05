@@ -5,7 +5,7 @@ import "./VotingEscrowTest.t.sol";
 import { SafeCastLib } from "solady/utils/SafeCastLib.sol";
 
 contract IncreaseAmount is VotingEscrowTest {
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
     uint256 internal constant WEEK = 7 * 86_400;
 
     function testFuzz_increaseAmount_simple(address pranker, uint256 amount, uint256 secondAmount, uint256 duration)

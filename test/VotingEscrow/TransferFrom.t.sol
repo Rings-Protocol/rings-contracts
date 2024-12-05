@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import "./VotingEscrowTest.t.sol";
 
 contract TransferFrom is VotingEscrowTest {
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
 
     function testFuzz_transferFrom_owner(uint256 amount, uint256 duration) public {
         amount = bound(amount, 1, 10e25);

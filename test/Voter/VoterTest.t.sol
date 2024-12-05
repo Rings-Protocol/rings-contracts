@@ -16,7 +16,7 @@ contract VoterTest is MainnetTest {
     uint256 internal constant WEEK = 86_400 * 7;
     uint256 internal constant MAX_WEIGHT = 10_000; // 100% in BPS
     uint256 internal constant UNIT = 1e18;
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
 
     function setUp() public virtual override {
         super.setUp();

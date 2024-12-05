@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import "./VotingEscrowTest.t.sol";
 
 contract BalanceOf is VotingEscrowTest {
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
 
     function testFuzz_balanceOf_multiple(address pranker, uint256 amount, uint256 duration, uint8 nftNumber) public {
         vm.assume(pranker != address(0));

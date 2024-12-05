@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import "./VotingEscrowTest.t.sol";
 
 contract IsApprovedOrOwner is VotingEscrowTest {
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
 
     function testFuzz_isApprovedOrOwner_approved(address pranker, uint256 amount, uint256 duration) public {
         vm.assume(pranker != address(0));
