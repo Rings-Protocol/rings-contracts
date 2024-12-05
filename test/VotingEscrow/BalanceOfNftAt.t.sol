@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import "./VotingEscrowTest.t.sol";
 
 contract BalanceOfNFTAt is VotingEscrowTest {
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
     uint256 internal constant WEEK = 7 * 86_400;
 
     function testFuzz_balanceOfNFTAt_Simple(address pranker, uint256 amount, uint256 duration, uint256 wait) public {
