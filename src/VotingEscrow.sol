@@ -630,8 +630,8 @@ contract VotingEscrow is IERC721Metadata, IVotes {
     uint256 public supply;
 
     uint256 internal constant WEEK = 1 weeks;
-    uint256 internal constant MAXTIME = 2 * 365 * 86_400;
-    int128 internal constant iMAXTIME = 2 * 365 * 86_400;
+    uint256 internal constant MAXTIME = 52 weeks;
+    int128 internal constant iMAXTIME = 52 weeks;
     uint256 internal constant MULTIPLIER = 1 ether;
 
     /*//////////////////////////////////////////////////////////////
@@ -934,13 +934,13 @@ contract VotingEscrow is IERC721Metadata, IVotes {
         LockedBalance memory _locked = locked[_tokenId];
         uint256 unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK; // Locktime is rounded down to weeks
 
-        if (_locked.amount == 0) {
-            revert NoLock();
-        }
         if (_locked.end <= block.timestamp) {
             revert LockExpired();
         }
-        if (unlock_time <= block.timestamp) {
+        if (_locked.amount == 0) {
+            revert NoLock();
+        }
+        if (unlock_time <= _locked.end) {
             revert LockInFuture();
         }
         if (unlock_time > block.timestamp + MAXTIME) {
