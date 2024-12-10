@@ -18,6 +18,9 @@ contract VoterTest is MainnetTest {
     uint256 internal constant UNIT = 1e18;
     uint256 internal constant MAXTIME = 52 weeks;
 
+    uint256 internal gaugeCap = 0.2e18;
+    uint256 internal gaugeHigherCap = 0.5e18;
+
     function setUp() public virtual override {
         super.setUp();
         //fork(); // If needed

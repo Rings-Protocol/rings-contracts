@@ -16,8 +16,8 @@ contract ReviveGauge is VoterTest {
         gauge3 = makeAddr("gauge3");
 
         vm.startPrank(owner);
-        voter.addGauge(gauge1, "Mock Gauge 1");
-        voter.addGauge(gauge2, "Mock Gauge 2");
+        voter.addGauge(gauge1, "Mock Gauge 1", gaugeCap);
+        voter.addGauge(gauge2, "Mock Gauge 2", gaugeCap);
         vm.stopPrank();
 
         vm.prank(owner);
