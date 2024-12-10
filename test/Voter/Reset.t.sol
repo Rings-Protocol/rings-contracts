@@ -38,10 +38,10 @@ contract Reset is VoterTest {
         createNft(address(bob), 12e18);
 
         vm.startPrank(owner);
-        voter.addGauge(gauge1, "Mock Gauge 1");
-        voter.addGauge(gauge2, "Mock Gauge 2");
-        voter.addGauge(gauge3, "Mock Gauge 3");
-        voter.addGauge(gauge4, "Mock Gauge 4");
+        voter.addGauge(gauge1, "Mock Gauge 1", gaugeCap);
+        voter.addGauge(gauge2, "Mock Gauge 2", gaugeCap);
+        voter.addGauge(gauge3, "Mock Gauge 3", gaugeCap);
+        voter.addGauge(gauge4, "Mock Gauge 4", gaugeCap);
         vm.stopPrank();
 
         gauges.push(gauge1);

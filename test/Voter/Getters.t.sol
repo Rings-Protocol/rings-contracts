@@ -37,10 +37,10 @@ contract Getters is VoterTest {
         createNft(address(alice), 150e18);
 
         vm.startPrank(owner);
-        voter.addGauge(gauge1, "Mock Gauge 1");
-        voter.addGauge(gauge2, "Mock Gauge 2");
-        voter.addGauge(gauge3, "Mock Gauge 3");
-        voter.addGauge(gauge4, "Mock Gauge 4");
+        voter.addGauge(gauge1, "Mock Gauge 1", gaugeCap);
+        voter.addGauge(gauge2, "Mock Gauge 2", gaugeCap);
+        voter.addGauge(gauge3, "Mock Gauge 3", gaugeHigherCap);
+        voter.addGauge(gauge4, "Mock Gauge 4", 0); // default cap
         vm.stopPrank();
 
         startTs = vm.getBlockTimestamp();
@@ -52,9 +52,9 @@ contract Getters is VoterTest {
         gauges.push(gauge1);
         gauges.push(gauge2);
         gauges.push(gauge3);
-        weights.push(5000);
-        weights.push(2000);
         weights.push(3000);
+        weights.push(2000);
+        weights.push(5000);
         gauges2.push(gauge2);
         gauges2.push(gauge4);
         weights2.push(3000);
@@ -62,9 +62,9 @@ contract Getters is VoterTest {
         gauges3.push(gauge3);
         gauges3.push(gauge4);
         gauges3.push(gauge1);
-        weights3.push(1000);
         weights3.push(6000);
-        weights3.push(3000);
+        weights3.push(2000);
+        weights3.push(2000);
 
         vm.prank(alice);
         voter.vote(1, gauges, weights);

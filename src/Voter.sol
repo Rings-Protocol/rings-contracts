@@ -54,11 +54,13 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when a gauge is added
-    event GaugeAdded(address indexed gauge);
+    event GaugeAdded(address indexed gauge, uint256 cap);
     /// @notice Emitted when a gauge is killed
     event GaugeKilled(address indexed gauge);
     /// @notice Emitted when a gauge is revived
     event GaugeRevived(address indexed gauge);
+    /// @notice Emitted when a gauge cap is updated
+    event GaugeCapUpdated(address indexed gauge, uint256 newCap);
     /// @notice Emitted when a vote is casted
     event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes);
     /// @notice Emitted when a vote is reseted
@@ -71,6 +73,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     event VoteDelayUpdated(uint256 oldVoteDelay, uint256 newVoteDelay);
     /// @notice Emitted when the deposit freeze is triggered
     event DepositFreezeTriggered(bool frozen);
+    /// @notice Emitted when the default gauge cap is updated
+    event DefaultCapUpdated(uint256 newCap);
 
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
@@ -92,6 +96,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     error VoteWeightOverflow();
     error NoVoteToRecast();
     error DepositFrozen();
+    error InvalidCap();
 
     /*//////////////////////////////////////////////////////////////
                                  CONSTANTS
@@ -115,12 +120,16 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
     uint256 public voteDelay = 1 hours; // To prevent spamming votes
 
+    uint256 public defaultCap = 0.1e18;
+
     // timestamp => budget amount
     mapping(uint256 => uint256) public periodBudget;
     // gauge => index
     mapping(address => uint256) public gaugeIndex;
     // gauge => label
     mapping(address => string) public gaugeLabel;
+    // gauge => cap
+    mapping(address => uint256) public gaugeCaps;
     // gauge => next period the gauge can claim rewards
     mapping(address => uint256) public gaugesDistributionTimestamp;
     // nft => timestamp => gauge => votes
@@ -304,6 +313,15 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         return _getGaugeRelativeWeight(gauge, ts);
     }
 
+    /**
+     * @notice Returns the cap of a gauge (returns the default cap if the gauge cap is 0)
+     * @param gauge The gauge address
+     * @return uint256
+     */
+    function getGaugeCap(address gauge) public view returns (uint256) {
+        return gaugeCaps[gauge] == 0 ? defaultCap : gaugeCaps[gauge];
+    }
+
     /*//////////////////////////////////////////////////////////////
                             PUBLIC FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -424,7 +442,18 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         // Fetch the next period the gauge can claim rewards, from the last time it claimed.
         uint256 period = gaugesDistributionTimestamp[gauge];
         while (period <= _currentPeriod) {
+            uint256 cap = getGaugeCap(gauge);
             uint256 relativeWeight = _getGaugeRelativeWeight(gauge, period);
+            if(relativeWeight > cap) {
+                uint256 excessWeight = relativeWeight - cap;
+                relativeWeight = cap;
+
+                // If the weight exceeds the cap for the gauge, take back the excess
+                // budget, and recycle it.
+                uint256 excessAmount = (excessWeight * periodBudget[period]) / UNIT;
+                uint256 depositPeriod = (currentPeriod() + (WEEK * 2));
+                periodBudget[depositPeriod] += excessAmount;
+            }
 
             claimedAmount += (relativeWeight * periodBudget[period]) / UNIT;
             period += WEEK;
@@ -448,14 +477,16 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @notice Add a gauge to the list
      * @param gauge The gauge address
      * @param label The gauge label
+     * @param cap The gauge cap (can be 0 to use the default cap)
      * @return index The gauge index
      *
      * @custom:require onlyOwner
      */
-    function addGauge(address gauge, string memory label) external onlyOwner returns (uint256 index) {
+    function addGauge(address gauge, string memory label, uint256 cap) external onlyOwner returns (uint256 index) {
         if (gauge == address(0)) revert ZeroAddress();
         GaugeStatus storage status = gaugeStatus[gauge];
         if (status.isGauge) revert GaugeAlreadyListed();
+        if (cap > UNIT) revert InvalidCap();
 
         status.isGauge = true;
         status.isAlive = true;
@@ -465,11 +496,12 @@ contract Voter is Ownable2Step, ReentrancyGuard {
 
         gaugeIndex[gauge] = index;
         gaugeLabel[gauge] = label;
+        gaugeCaps[gauge] = cap;
 
         uint256 _currentPeriod = currentPeriod();
         gaugesDistributionTimestamp[gauge] = _currentPeriod;
 
-        emit GaugeAdded(gauge);
+        emit GaugeAdded(gauge, cap);
     }
 
     /**
@@ -528,6 +560,12 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         isDepositFrozen = !isDepositFrozen;
 
         emit DepositFreezeTriggered(isDepositFrozen);
+    }
+
+    function updatedefaultCap(uint256 _defaultCap) external onlyOwner {
+        defaultCap = _defaultCap;
+
+        emit DefaultCapUpdated(_defaultCap);
     }
 
     /*//////////////////////////////////////////////////////////////

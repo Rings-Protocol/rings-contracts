@@ -14,7 +14,7 @@ contract KillGauge is VoterTest {
         gauge2 = makeAddr("gauge2");
 
         vm.startPrank(owner);
-        voter.addGauge(gauge1, "Mock Gauge 1");
+        voter.addGauge(gauge1, "Mock Gauge 1", gaugeCap);
         vm.stopPrank();
     }
 
