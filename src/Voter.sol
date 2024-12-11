@@ -542,6 +542,9 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @param cap The gauge cap (can be 0 to use the default cap)
      *
      * @custom:require onlyOwner
+     * 
+     * @dev Need to call claimGaugeRewards() before the update to avoid any cases were the gauge 
+     * ends up claiming more or less than supposed on past periods
      */
     function updateGaugeCap(address gauge, uint256 cap) external onlyOwner {
         if (gauge == address(0)) revert ZeroAddress();
