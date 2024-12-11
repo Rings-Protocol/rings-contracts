@@ -319,7 +319,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @return uint256
      */
     function getGaugeCap(address gauge) public view returns (uint256) {
-        return gaugeCaps[gauge] == 0 ? defaultCap : gaugeCaps[gauge];
+        uint256 cap = gaugeCaps[gauge];
+        return cap == 0 ? defaultCap : cap;
     }
 
     /*//////////////////////////////////////////////////////////////
