@@ -537,6 +537,25 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     }
 
     /**
+     * @notice Update the cap of a gauge
+     * @param gauge The gauge address
+     * @param cap The gauge cap (can be 0 to use the default cap)
+     *
+     * @custom:require onlyOwner
+     */
+    function updateGaugeCap(address gauge, uint256 cap) external onlyOwner {
+        if (gauge == address(0)) revert ZeroAddress();
+        GaugeStatus storage status = gaugeStatus[gauge];
+        if (!status.isGauge) revert GaugeNotListed();
+        if (!status.isAlive) revert KilledGauge();
+        if (cap > UNIT) revert InvalidCap();
+
+        gaugeCaps[gauge] = cap;
+
+        emit GaugeCapUpdated(gauge, cap);
+    }
+
+    /**
      * @notice Update the vote delay
      * @param newVoteDelay The new vote delay
      *
