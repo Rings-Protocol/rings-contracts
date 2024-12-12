@@ -319,7 +319,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @return uint256
      */
     function getGaugeCap(address gauge) public view returns (uint256) {
-        return gaugeCaps[gauge] == 0 ? defaultCap : gaugeCaps[gauge];
+        uint256 cap = gaugeCaps[gauge];
+        return cap == 0 ? defaultCap : cap;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -534,6 +535,28 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         status.isAlive = true;
 
         emit GaugeRevived(gauge);
+    }
+
+    /**
+     * @notice Update the cap of a gauge
+     * @param gauge The gauge address
+     * @param cap The gauge cap (can be 0 to use the default cap)
+     *
+     * @custom:require onlyOwner
+     * 
+     * @dev Need to call claimGaugeRewards() before the update to avoid any cases were the gauge 
+     * ends up claiming more or less than supposed on past periods
+     */
+    function updateGaugeCap(address gauge, uint256 cap) external onlyOwner {
+        if (gauge == address(0)) revert ZeroAddress();
+        GaugeStatus storage status = gaugeStatus[gauge];
+        if (!status.isGauge) revert GaugeNotListed();
+        if (!status.isAlive) revert KilledGauge();
+        if (cap > UNIT) revert InvalidCap();
+
+        gaugeCaps[gauge] = cap;
+
+        emit GaugeCapUpdated(gauge, cap);
     }
 
     /**
