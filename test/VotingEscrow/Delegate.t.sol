@@ -59,7 +59,8 @@ contract Delegate is VotingEscrowTest {
 
         assertEq(votingEscrow.delegates(pranker), pranker, "Pranker is not delegate");
         assertEq(votingEscrow.numCheckpoints(pranker), 3, "Pranker has 3 checkpoints");
-        //assertEq(prankerCheckpoint.timestamp, vm.getBlockTimestamp() + wait, "Timestamp is not vm.getBlockTimestamp()");
+        //assertEq(prankerCheckpoint.timestamp, vm.getBlockTimestamp() + wait, "Timestamp is not
+        // vm.getBlockTimestamp()");
         //assertEq(prankerCheckpoint.tokenIds[0], tokenId, "Balance is not balanceOf");
         //assertEq(prankerCheckpoint.tokenIds.length, 1, "Tokens length is not 1");
     }

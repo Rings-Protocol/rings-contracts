@@ -70,7 +70,8 @@ contract Recast is VoterTest {
         vm.prank(alice);
         voter.vote(3, gauges3, weights3);
 
-        vm.warp(vm.getBlockTimestamp() + 5 days); // only 5 days here since taken start timestamp is at the end of the period
+        vm.warp(vm.getBlockTimestamp() + 5 days); // only 5 days here since taken start timestamp is at the end of the
+            // period
     }
 
     function test_recast_votes_correctly() public {

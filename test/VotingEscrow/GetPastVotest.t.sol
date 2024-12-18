@@ -21,7 +21,9 @@ contract GetPastVotes is VotingEscrowTest {
         uint256 bias = slope * (lockedEnd - startTimestamp);
         uint256 estimated = bias - (slope * wait);
         assertEq(
-            votingEscrow.getPastVotes(pranker, vm.getBlockTimestamp() + wait), estimated, "Vote power should be estimated"
+            votingEscrow.getPastVotes(pranker, vm.getBlockTimestamp() + wait),
+            estimated,
+            "Vote power should be estimated"
         );
     }
 

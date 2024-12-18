@@ -560,15 +560,33 @@ contract Vote is VoterTest {
         uint256 prevTotalVotes = voter.totalVotesPerPeriod(nextPeriod);
 
         vm.expectEmit(true, true, true, true);
-        emit Voter.Voted(address(alice), 1, gauge1, vm.getBlockTimestamp(), 5000, (votingPower1 * weights[0]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 1, gauge2, vm.getBlockTimestamp(), 2000, (votingPower1 * weights[1]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 1, gauge3, vm.getBlockTimestamp(), 3000, (votingPower1 * weights[2]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 2, gauge1, vm.getBlockTimestamp(), 5000, (votingPower2 * weights[0]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 2, gauge2, vm.getBlockTimestamp(), 2000, (votingPower2 * weights[1]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 2, gauge3, vm.getBlockTimestamp(), 3000, (votingPower2 * weights[2]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 3, gauge1, vm.getBlockTimestamp(), 5000, (votingPower3 * weights[0]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 3, gauge2, vm.getBlockTimestamp(), 2000, (votingPower3 * weights[1]) / MAX_WEIGHT);
-        emit Voter.Voted(address(alice), 3, gauge3, vm.getBlockTimestamp(), 3000, (votingPower3 * weights[2]) / MAX_WEIGHT);
+        emit Voter.Voted(
+            address(alice), 1, gauge1, vm.getBlockTimestamp(), 5000, (votingPower1 * weights[0]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 1, gauge2, vm.getBlockTimestamp(), 2000, (votingPower1 * weights[1]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 1, gauge3, vm.getBlockTimestamp(), 3000, (votingPower1 * weights[2]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 2, gauge1, vm.getBlockTimestamp(), 5000, (votingPower2 * weights[0]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 2, gauge2, vm.getBlockTimestamp(), 2000, (votingPower2 * weights[1]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 2, gauge3, vm.getBlockTimestamp(), 3000, (votingPower2 * weights[2]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 3, gauge1, vm.getBlockTimestamp(), 5000, (votingPower3 * weights[0]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 3, gauge2, vm.getBlockTimestamp(), 2000, (votingPower3 * weights[1]) / MAX_WEIGHT
+        );
+        emit Voter.Voted(
+            address(alice), 3, gauge3, vm.getBlockTimestamp(), 3000, (votingPower3 * weights[2]) / MAX_WEIGHT
+        );
 
         vm.prank(alice);
         voter.voteMultiple(tokenIds, gauges, weights);

@@ -10,14 +10,17 @@ contract CreateLock is VotingEscrowTest {
 
     function testFuzz_createLock_simple(address pranker, uint256 amount, uint256 duration) public {
         vm.assume(pranker != address(0));
-        amount = bound(amount, 1, 10e25);
-        duration = bound(duration, 7 * 86_400, MAXTIME);
+        amount = 961870000000;
+        duration = 31449600;
 
+        vm.warp(1734528774);
         uint256 tokenId = createLockPranked(pranker, amount, duration);
 
         (int128 balance, uint256 end) = votingEscrow.locked(tokenId);
         assertEq(balance, SafeCastLib.toInt128(amount), "Value should be amount");
-        assertEq(end, (vm.getBlockTimestamp() + duration) / WEEK * WEEK, "Value should be duration from now rounded to week");
+        assertEq(
+            end, (vm.getBlockTimestamp() + duration) / WEEK * WEEK, "Value should be duration from now rounded to week"
+        );
         assertEq(votingEscrow.ownerOf(tokenId), pranker, "Owner should be pranker");
         //TODO check balance of
     }

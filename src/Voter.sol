@@ -62,7 +62,9 @@ contract Voter is Ownable2Step, ReentrancyGuard {
     /// @notice Emitted when a gauge cap is updated
     event GaugeCapUpdated(address indexed gauge, uint256 newCap);
     /// @notice Emitted when a vote is casted
-    event Voted(address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes);
+    event Voted(
+        address indexed voter, uint256 indexed tokenId, address indexed gauge, uint256 ts, uint256 weight, uint256 votes
+    );
     /// @notice Emitted when a vote is reseted
     event VoteReseted(address indexed voter, uint256 indexed tokenId, address indexed gauge);
     /// @notice Emitted when a budget is deposited
@@ -445,7 +447,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
         while (period <= _currentPeriod) {
             uint256 cap = getGaugeCap(gauge);
             uint256 relativeWeight = _getGaugeRelativeWeight(gauge, period);
-            if(relativeWeight > cap) {
+            if (relativeWeight > cap) {
                 uint256 excessWeight = relativeWeight - cap;
                 relativeWeight = cap;
 
@@ -543,8 +545,8 @@ contract Voter is Ownable2Step, ReentrancyGuard {
      * @param cap The gauge cap (can be 0 to use the default cap)
      *
      * @custom:require onlyOwner
-     * 
-     * @dev Need to call claimGaugeRewards() before the update to avoid any cases were the gauge 
+     *
+     * @dev Need to call claimGaugeRewards() before the update to avoid any cases were the gauge
      * ends up claiming more or less than supposed on past periods
      */
     function updateGaugeCap(address gauge, uint256 cap) external onlyOwner {

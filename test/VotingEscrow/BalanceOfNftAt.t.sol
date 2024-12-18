@@ -20,7 +20,9 @@ contract BalanceOfNFTAt is VotingEscrowTest {
         uint256 slope = amount / MAXTIME;
         uint256 bias = slope * (lockedEnd - startTimestamp);
         uint256 estimated = bias - (slope * wait);
-        assertEq(votingEscrow.balanceOfNFTAt(tokenId, vm.getBlockTimestamp() + wait), estimated, "Balance should be amount");
+        assertEq(
+            votingEscrow.balanceOfNFTAt(tokenId, vm.getBlockTimestamp() + wait), estimated, "Balance should be amount"
+        );
     }
 
     function testFuzz_balanceOfNFTAt_Expired(address pranker, uint256 amount, uint256 duration) public {

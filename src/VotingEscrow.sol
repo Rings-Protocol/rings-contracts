@@ -70,7 +70,6 @@ contract VotingEscrow is IERC721Metadata, IVotes {
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
 
-
     error NotToken();
     error AlreadyAttached();
     error NotApprovedOrOwner();
@@ -152,7 +151,7 @@ contract VotingEscrow is IERC721Metadata, IVotes {
     string public constant name = "Rings veUSD";
     string public constant symbol = "veUSD";
     string public constant version = "1.0.0";
-    uint8 public constant decimals = 18;
+    uint8 public constant decimals = 6;
 
     function setTeam(address _team) external {
         require(msg.sender == team);

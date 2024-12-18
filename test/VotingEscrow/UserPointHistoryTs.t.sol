@@ -15,7 +15,9 @@ contract UserPointHistoryTs is VotingEscrowTest {
         uint256 idx = votingEscrow.user_point_epoch(tokenId);
 
         assertEq(
-            votingEscrow.user_point_history__ts(tokenId, idx), vm.getBlockTimestamp(), "Value should be current timestamp"
+            votingEscrow.user_point_history__ts(tokenId, idx),
+            vm.getBlockTimestamp(),
+            "Value should be current timestamp"
         );
     }
 
