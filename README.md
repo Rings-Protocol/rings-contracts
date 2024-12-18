@@ -1,66 +1,41 @@
-## Foundry
+# Rings
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Rings is a meta-stablecoin for USD & ETH offering competitive yield for stakers, providing deep liquidity for Sonic DeFi, and funding Sonic DeFi projects via its lockers.  
+Rings is build on top of Ethereum vaults, allowing to emit an asset (scUSD & scETH) on the Sonic chain.  
+Those assets can be staked, and the share token received by staking can then be locked inside veNFTs, forfeiting the staking rewards.  
+Those veNFTs give holders the right to vote on weekly gauge votes to allocate the yield from Ethereum vaults to listed Sonic ecosystem projects.  
 
-Foundry consists of:
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Deployed contracts (Sonic)
 
-## Documentation
+scUSD : xx  
+stkscUSD : xx  
+veUSD : xx  
+scUSD Voter : xx  
 
-https://book.getfoundry.sh/
+scETH : xx  
+stkscETH : xx  
+veETH : xx  
+scETH Voter : xx  
 
-## Usage
+## Build
 
-### Build
+Requires to install Foundry.  
 
 ```shell
 $ forge build
 ```
 
-### Test
+## Test
 
 ```shell
 $ forge test
 ```
 
-### Format
+## Ressources
 
-```shell
-$ forge fmt
-```
+Website : [https://rings.money](https://rings.money)
 
-### Gas Snapshots
+Twitter : [Rings_Protocol](https://x.com/Rings_Protocol)
 
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Discord : [Rings Discord](https://discord.com/invite/5dy4wfWxWU)
