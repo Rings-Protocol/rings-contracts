@@ -17,13 +17,15 @@ contract ZapperNativeTeller {
 
     WETH public constant weth = WETH(payable(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2));
     ITeller public immutable teller;
+    address public immutable vault;
 
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(ITeller definitiveTeller) {
+    constructor(ITeller definitiveTeller, address definitiveVault) {
         teller = definitiveTeller;
+        vault = definitiveVault;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -49,8 +51,8 @@ contract ZapperNativeTeller {
         uint256 amount = msg.value - maxFee;
         weth.deposit{ value: amount }();
 
-        address(weth).safeApprove(address(teller), amount);
-        sharesBridged = teller.depositAndBridge(address(weth), amount, minimumMint, to, bridgeWildCard, feeToken, maxFee);
+        address(weth).safeApprove(vault, amount);
+        sharesBridged = teller.depositAndBridge{value: maxFee}(address(weth), amount, minimumMint, to, bridgeWildCard, feeToken, maxFee);
 
         // refund remaining gas
         payable(msg.sender).transfer(address(this).balance);

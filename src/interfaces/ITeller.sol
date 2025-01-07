@@ -10,5 +10,5 @@ interface ITeller {
         bytes calldata bridgeWildCard,
         address feeToken,
         uint256 maxFee
-    ) external returns (uint256 sharesBridged);
+    ) external payable returns (uint256 sharesBridged);
 }
