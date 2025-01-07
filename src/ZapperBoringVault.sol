@@ -46,10 +46,13 @@ contract ZapperNativeTeller {
         address feeToken,
         uint256 maxFee
     ) external payable returns (uint256 sharesBridged) {
-        uint256 amount = msg.value;
+        uint256 amount = msg.value - maxFee;
         weth.deposit{ value: amount }();
 
         address(weth).safeApprove(address(teller), amount);
-        return teller.depositAndBridge(address(weth), amount, minimumMint, to, bridgeWildCard, feeToken, maxFee);
+        sharesBridged = teller.depositAndBridge(address(weth), amount, minimumMint, to, bridgeWildCard, feeToken, maxFee);
+
+        // refund remaining gas
+        payable(msg.sender).transfer(address(this).balance);
     }
 }
