@@ -151,10 +151,10 @@ contract VotingEscrow is IERC721Metadata, IVotes {
                              METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    string public constant name = "Rings veUSD";
-    string public constant symbol = "veUSD";
+    string public constant name = "Rings veBTC";
+    string public constant symbol = "veBTC";
     string public constant version = "1.0.0";
-    uint8 public constant decimals = 6;
+    uint8 public constant decimals = 18;
 
     function setTeam(address _team) external {
         require(msg.sender == team);
