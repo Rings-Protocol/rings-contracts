@@ -5,6 +5,7 @@ import { IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/e
 import { IVotes } from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "solady/tokens/ERC20.sol";
 import { IVeArtProxy } from "./interfaces/IVeArtProxy.sol";
 import { IVotingEscrow } from "./interfaces/IVotingEscrow.sol";
 
@@ -87,6 +88,7 @@ contract VotingEscrow is IERC721Metadata, IVotes {
     //////////////////////////////////////////////////////////////*/
 
     address public immutable token;
+    uint8  public immutable tokenDecimals;
     address public voter;
     address public team;
     address public artProxy;
@@ -114,6 +116,7 @@ contract VotingEscrow is IERC721Metadata, IVotes {
         token = token_addr;
         team = msg.sender;
         artProxy = art_proxy;
+        tokenDecimals = ERC20(token_addr).decimals();
 
         point_history[0].blk = block.number;
         point_history[0].ts = block.timestamp;
@@ -148,10 +151,10 @@ contract VotingEscrow is IERC721Metadata, IVotes {
                              METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    string public constant name = "Rings veUSD";
-    string public constant symbol = "veUSD";
+    string public constant name = "Rings veBTC";
+    string public constant symbol = "veBTC";
     string public constant version = "1.0.0";
-    uint8 public constant decimals = 6;
+    uint8 public constant decimals = 18;
 
     function setTeam(address _team) external {
         require(msg.sender == team);
@@ -831,7 +834,7 @@ contract VotingEscrow is IERC721Metadata, IVotes {
 
         address from = msg.sender;
         if (_value != 0 && deposit_type != DepositType.MERGE_TYPE && deposit_type != DepositType.SPLIT_TYPE) {
-            assert(IERC20(token).transferFrom(from, address(this), _value));
+            assert(IERC20(token).transferFrom(from, address(this), _scaleDecimals(_value, 18, tokenDecimals)));
         }
 
         emit Deposit(from, _tokenId, _value, _locked.end, deposit_type, block.timestamp);
@@ -862,7 +865,7 @@ contract VotingEscrow is IERC721Metadata, IVotes {
         if (_locked.end <= block.timestamp) {
             revert LockExpired();
         }
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
+        _deposit_for(_tokenId, _scaleDecimals(_value, tokenDecimals, 18), 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
     }
 
     /// @notice Deposit `_value` tokens for `_to` and lock for `_lock_duration`
@@ -884,7 +887,7 @@ contract VotingEscrow is IERC721Metadata, IVotes {
         uint256 _tokenId = tokenId;
         _mint(_to, _tokenId);
 
-        _deposit_for(_tokenId, _value, unlock_time, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
+        _deposit_for(_tokenId, _scaleDecimals(_value, tokenDecimals, 18), unlock_time, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
         return _tokenId;
     }
 
@@ -922,7 +925,7 @@ contract VotingEscrow is IERC721Metadata, IVotes {
             revert LockExpired();
         }
 
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
+        _deposit_for(_tokenId, _scaleDecimals(_value, tokenDecimals, 18), 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
     }
 
     /// @notice Extend the unlock time for `_tokenId`
@@ -972,13 +975,25 @@ contract VotingEscrow is IERC721Metadata, IVotes {
         // Both can have >= 0 amount
         _checkpoint(_tokenId, _locked, LockedBalance(0, 0));
 
-        assert(IERC20(token).transfer(msg.sender, value));
+        assert(IERC20(token).transfer(msg.sender, _scaleDecimals(value, 18, tokenDecimals)));
 
         // Burn the NFT
         _burn(_tokenId);
 
         emit Withdraw(msg.sender, _tokenId, value, block.timestamp);
         emit Supply(supply_before, supply_before - value);
+    }
+
+    function _scaleDecimals(uint256 amount, uint8 from, uint8 to) internal pure returns (uint256) {
+        if (from == to) {
+            return amount;
+        }
+
+        if (from > to) {
+            return amount / (10 ** (from - to));
+        } else {
+            return amount * (10 ** (to - from));
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
