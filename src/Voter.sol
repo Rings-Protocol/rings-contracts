@@ -652,10 +652,13 @@ contract Voter is Ownable2Step, ReentrancyGuard {
             totalUsedWeights += weights[i];
             totalVotesCasted += gaugeVotes;
 
-            gaugeVote[tokenId][nextPeriod].push(gauge);
+            if (votes[tokenId][nextPeriod][gauge].weight == 0) {
+                gaugeVote[tokenId][nextPeriod].push(gauge);
+            }
 
             votesPerPeriod[nextPeriod][gauge] += gaugeVotes;
-            votes[tokenId][nextPeriod][gauge] = Vote(weights[i], gaugeVotes);
+            votes[tokenId][nextPeriod][gauge].weight += weights[i];
+            votes[tokenId][nextPeriod][gauge].votes += gaugeVotes;
 
             emit Voted(voter, tokenId, gauge, block.timestamp, weights[i], gaugeVotes);
         }
