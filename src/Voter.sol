@@ -652,7 +652,7 @@ contract Voter is Ownable2Step, ReentrancyGuard {
             totalUsedWeights += weights[i];
             totalVotesCasted += gaugeVotes;
 
-            if (votes[tokenId][nextPeriod][gauge].weight != 0) {
+            if (votes[tokenId][nextPeriod][gauge].weight == 0) {
                 gaugeVote[tokenId][nextPeriod].push(gauge);
             }
 
