@@ -9,8 +9,8 @@ contract DistributeYieldScript is Script {
     Voter voterETH;
 
     function setUp() external {
-        voterUSD = Voter(0xF365C45B6913BE7Ab74C970D9227B9D0dfF44aFb);
-        voterETH = Voter(0x9842be0f52569155fA58fff36E772bC79D92706e);
+        voterUSD = Voter(0xB84194E28f624BBBA3C9181F3a1120eE76469337);
+        voterETH = Voter(0x43739B96B19aE7C2E0d80BE7832325846f55Fa05);
     }
 
     function _distributeYield(Voter _voter) internal {
