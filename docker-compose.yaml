@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  gauge-distributor:
+    build: .
+    container_name: gauge-distributor
+    env_file:
+      - .env
+    restart: "no"
