@@ -1,0 +1,43 @@
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+.gitmodules
+
+# GitHub
+.github
+
+# Documentation
+*.md
+docs/
+
+# Cache and artifacts
+cache/
+out/
+broadcast/
+.DS_Store
+
+# Environment files
+.env
+.env.*
+
+# Node modules (if any)
+node_modules/
+
+# Test files
+test/
+*.t.sol
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+*.log

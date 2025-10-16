@@ -11,4 +11,10 @@ interface ITeller {
         address feeToken,
         uint256 maxFee
     ) external payable returns (uint256 sharesBridged);
+
+    function deposit(
+        address depositAsset,
+        uint256 depositAmount,
+        uint256 minimumMint
+    ) external payable returns (uint256 shares);
 }
