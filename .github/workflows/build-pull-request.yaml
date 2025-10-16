@@ -40,4 +40,4 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.DOCKER_REGISTRY }}/treveexyz/${{ github.event.repository.name }}:${{ github.head_ref }}
+            ${{ env.DOCKER_REGISTRY }}/rings-protocol/${{ github.event.repository.name }}:${{ github.head_ref }}
