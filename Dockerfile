@@ -5,9 +5,6 @@ WORKDIR /app
 # Copy the entire project
 COPY . .
 
-# Install dependencies
-RUN forge install
-
 # Build the project
 RUN forge build
 
