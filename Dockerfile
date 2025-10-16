@@ -10,5 +10,5 @@ RUN forge build
 
 # Entry point to run the distribution script
 # PRIVATE_KEY is read directly by the script via vm.envUint()
-# ETH_RPC_URL is read automatically by forge
-ENTRYPOINT ["forge", "script", "script/DistributeYield.s.sol:DistributeYieldScript", "--broadcast"]
+# SONIC_RPC_URL is read via the 'sonic' alias defined in foundry.toml
+ENTRYPOINT ["forge", "script", "script/DistributeYield.s.sol:DistributeYieldScript", "--rpc-url", "sonic", "--broadcast"]

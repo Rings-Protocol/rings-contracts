@@ -6,4 +6,5 @@ services:
     container_name: gauge-distributor
     env_file:
       - .env
+    # do not restart the container automatically as it is used as a cron job.
     restart: "no"
